@@ -11,6 +11,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import javafx.scene.layout.StackPane;
+import javafx.scene.control.TextField;
 
 public class GUI_Interface extends Application 
 {
@@ -30,57 +34,82 @@ public class GUI_Interface extends Application
         primaryStage.setTitle("↢ACM↣");
 
         Label titleLabel = new Label("Auto Code Marker");
-        titleLabel.setFont(Font.font("Consolas", 18));  // Techy-looking font
+        titleLabel.setFont(Font.font("Consolas", 38));  // Techy-looking font
         titleLabel.setTextFill(Color.web("#00BFFF"));   // Electric blue color
         titleLabel.setStyle("-fx-font-weight: bold;");  // Bold for emphasis
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        titleLabel.setAlignment(Pos.CENTER);
+
+
+        // Labels for file selection
+        Label submissionsLabel = new Label("Choose Submissions Folder:  ");
+        TextField submissionsPathField = new TextField();
+        submissionsPathField.setEditable(false);
+        submissionsPathField.setPrefWidth(300);
         
-        
-        // Labels
-        Label submissionsLabel = new Label("Choose Submissions Folder:");
-        Label testCaseLabel = new Label("Choose Test Case:");
-        Label expectedOutputLabel = new Label("Choose Expected Output:");
+        Label testCaseLabel = new Label("Choose Test Case:                  ");
+        TextField testCasePathField = new TextField();
+        testCasePathField.setEditable(false);
+        testCasePathField.setPrefWidth(300);
+
+        Label expectedOutputLabel = new Label("Choose Expected Output:      ");
+        TextField expectedOutputPathField = new TextField();
+        expectedOutputPathField.setEditable(false);
+        expectedOutputPathField.setPrefWidth(300);
+
 
         // Buttons for choosing directories/files
         Button chooseSubmissionsButton = new Button("Browse");
         Button chooseTestCaseButton = new Button("Browse");
         Button chooseExpectedOutputButton = new Button("Browse");
 
+        Rectangle down = new Rectangle(100, 40);
+        down.setFill(Color.LIGHTBLUE);
+        Rectangle run = new Rectangle(100, 40);
+        run.setFill(Color.LIGHTGREEN);
+
+        // Text nodes to display on top of rectangles
+        Text downloadText = new Text("Download");
+        downloadText.setFont(Font.font("Arial", 12)); // Set font for the text
+        downloadText.setFill(Color.BLUE.brighter().brighter()); // Text color
+
+        Text runTestCasesText = new Text("Run Test Cases");
+        runTestCasesText.setFont(Font.font("Arial", 12)); // Set font for the text
+        runTestCasesText.setFill(Color.GREEN); // Text color
+
         // Action handlers for folder/file selection
-        chooseSubmissionsButton.setOnAction(e -> 
-        {
+        chooseSubmissionsButton.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Select Submissions Folder");
             var folder = directoryChooser.showDialog(primaryStage);
-            if (folder != null) 
-            {
+            if (folder != null) {
                 submissionsFolder = folder.getAbsolutePath();
-                submissionsLabel.setText("Choose Submissions Folder:\n" + submissionsFolder);
+                submissionsPathField.setText(submissionsFolder);
             }
         });
 
-        chooseTestCaseButton.setOnAction(e ->
-        {
+
+        chooseTestCaseButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Test Case File");
             var file = fileChooser.showOpenDialog(primaryStage);
-            if (file != null) 
-            {
+            if (file != null) {
                 testCaseFile = file.getAbsolutePath();
-                testCaseLabel.setText("Choose Test Case:\n" + testCaseFile);
+                testCasePathField.setText(testCaseFile);
             }
         });
 
-        chooseExpectedOutputButton.setOnAction(e -> 
-        {
+
+        chooseExpectedOutputButton.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Select Expected Output Folder");
             var folder = directoryChooser.showDialog(primaryStage);
-            if (folder != null) 
-            {
+            if (folder != null) {
                 expectedOutputFolder = folder.getAbsolutePath();
-                expectedOutputLabel.setText("Choose Expected Output:\n" + expectedOutputFolder);
+                expectedOutputPathField.setText(expectedOutputFolder);
             }
         });
+
 
         // Action buttons
         Button downloadButton = new Button("Download");
@@ -90,54 +119,58 @@ public class GUI_Interface extends Application
         runTestCasesButton.setOnAction(e -> runTestCases());
 
         // Layout setup
-        VBox root = new VBox(25);
+        VBox root = new VBox(22);
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.TOP_LEFT);
 
         // Each label + browse button stacked vertically
-        VBox submissionsBox = new VBox(8, submissionsLabel, chooseSubmissionsButton);
-        VBox testCaseBox = new VBox(8, testCaseLabel, chooseTestCaseButton);
-        VBox expectedOutputBox = new VBox(8, expectedOutputLabel, chooseExpectedOutputButton);
+        HBox submissionsBox = new HBox(6, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
+        HBox testCaseBox = new HBox(6, testCaseLabel, testCasePathField, chooseTestCaseButton);
+        HBox expectedOutputBox = new HBox(6, expectedOutputLabel, expectedOutputPathField, chooseExpectedOutputButton);
+        
+        submissionsBox.setAlignment(Pos.CENTER_LEFT);
+        testCaseBox.setAlignment(Pos.CENTER_LEFT);
+        expectedOutputBox.setAlignment(Pos.CENTER_LEFT);
+        
+        // Use StackPane to overlay text on top of rectangles
+        StackPane downloadPane = new StackPane(down, downloadText);
+        StackPane runPane = new StackPane(run, runTestCasesText);
 
         // Action buttons stay side-by-side
         HBox actionButtons = new HBox(15, downloadButton, runTestCasesButton);
+        HBox base = new HBox(6, downloadPane, runPane);
         actionButtons.setAlignment(Pos.CENTER);
 
         // Add everything to root
-        root.getChildren().addAll(titleLabel, submissionsBox, testCaseBox, expectedOutputBox, actionButtons);
+        root.getChildren().addAll(titleLabel, submissionsBox, testCaseBox, expectedOutputBox, /*actionButtons,*/ base);
 
-        Scene scene = new Scene(root, 222, 350);
+        Scene scene = new Scene(root, 600, 310);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
     }
 
     // Empty methods for buttons
-    private void runDownload() 
-    {
+    private void runDownload() {
         // TODO: Add download functionality
         System.out.println("Download button clicked.");
     }
 
-    private void runTestCases() 
-    {
+    private void runTestCases() {
         // TODO: Add test case functionality
         System.out.println("Run Test Cases button clicked.");
     }
 
     // Getter methods
-    public String getSubmissionsFolder() 
-    {
+    public String getSubmissionsFolder() {
         return submissionsFolder;
     }
 
-    public String getTestCaseFile() 
-    {
+    public String getTestCaseFile() {
         return testCaseFile;
     }
 
-    public String getExpectedOutputFolder()
-    {
+    public String getExpectedOutputFolder() {
         return expectedOutputFolder;
     }
 }
