@@ -57,7 +57,6 @@ public class GUI_Interface extends Application
         expectedOutputPathField.setEditable(false);
         expectedOutputPathField.setPrefWidth(300);
 
-
         // Buttons for choosing directories/files
         Button chooseSubmissionsButton = new Button("Browse");
         Button chooseTestCaseButton = new Button("Browse");
@@ -65,9 +64,13 @@ public class GUI_Interface extends Application
 
         Rectangle down = new Rectangle(100, 40);
         down.setFill(Color.LIGHTBLUE);
+        down.setArcWidth(20);
+        down.setArcHeight(20);
         Rectangle run = new Rectangle(100, 40);
         run.setFill(Color.LIGHTGREEN);
-
+        run.setArcWidth(20);
+        run.setArcHeight(20);
+        
         // Text nodes to display on top of rectangles
         Text downloadText = new Text("Download");
         downloadText.setFont(Font.font("Arial", 12)); // Set font for the text
@@ -111,9 +114,7 @@ public class GUI_Interface extends Application
         });
 
 
-        // Action buttons
-        Button downloadButton = new Button("Download");
-        downloadButton.setOnAction(e -> runDownload());
+        
 
         Button runTestCasesButton = new Button("Run Test Cases");
         runTestCasesButton.setOnAction(e -> runTestCases());
@@ -137,12 +138,25 @@ public class GUI_Interface extends Application
         StackPane runPane = new StackPane(run, runTestCasesText);
 
         // Action buttons stay side-by-side
-        HBox actionButtons = new HBox(15, downloadButton, runTestCasesButton);
         HBox base = new HBox(6, downloadPane, runPane);
-        actionButtons.setAlignment(Pos.CENTER);
-
+        //Action Buttons
+        down.setOnMouseClicked(e->{runDownload();});
+        run.setOnMouseClicked(e->{runTestCases();});
+        down.setOnMouseEntered(e->{down.setOpacity(0.65);});
+        run.setOnMouseEntered(e->{run.setOpacity(0.65);});
+        down.setOnMouseExited(e->{down.setOpacity(1);});
+        run.setOnMouseExited(e->{run.setOpacity(1);});
+        //Adding Action to text as well
+        downloadText.setOnMouseClicked(e->{runDownload();});
+        runTestCasesText.setOnMouseClicked(e->{runTestCases();});
+        downloadText.setOnMouseEntered(e->{down.setOpacity(0.65);});
+        runTestCasesText.setOnMouseEntered(e->{run.setOpacity(0.65);});
+        downloadText.setOnMouseExited(e->{down.setOpacity(1);});
+        runTestCasesText.setOnMouseExited(e->{run.setOpacity(1);});
+        
+        
         // Add everything to root
-        root.getChildren().addAll(titleLabel, submissionsBox, testCaseBox, expectedOutputBox, /*actionButtons,*/ base);
+        root.getChildren().addAll(titleLabel, submissionsBox, testCaseBox, expectedOutputBox, base);
 
         Scene scene = new Scene(root, 600, 310);
         primaryStage.setScene(scene);
