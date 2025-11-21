@@ -23,7 +23,7 @@ public class GUI_Interface extends Application
     private String testCaseFile;
     private String expectedOutputFolder;
 
-    public static void main(String[] args) 
+    public static void main(String[] args)
     {
         launch(args);
     }
@@ -52,7 +52,7 @@ public class GUI_Interface extends Application
         testCasePathField.setEditable(false);
         testCasePathField.setPrefWidth(300);
 
-        Label expectedOutputLabel = new Label("Choose Expected Output:      ");
+        Label expectedOutputLabel = new Label("Choose Expected Output destination:");
         TextField expectedOutputPathField = new TextField();
         expectedOutputPathField.setEditable(false);
         expectedOutputPathField.setPrefWidth(300);
