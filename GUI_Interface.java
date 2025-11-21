@@ -42,17 +42,17 @@ public class GUI_Interface extends Application
 
 
         // Labels for file selection
-        Label submissionsLabel = new Label("Choose Submissions Folder:  ");
+        Label submissionsLabel = new Label("Choose Submissions Folder:                 ");
         TextField submissionsPathField = new TextField();
         submissionsPathField.setEditable(false);
         submissionsPathField.setPrefWidth(300);
         
-        Label testCaseLabel = new Label("Choose Test Case:                  ");
+        Label testCaseLabel = new Label("Choose Test Case:                                 ");
         TextField testCasePathField = new TextField();
         testCasePathField.setEditable(false);
         testCasePathField.setPrefWidth(300);
 
-        Label expectedOutputLabel = new Label("Choose Expected Output destination:");
+        Label expectedOutputLabel = new Label("Choose Expected Output destination:  ");
         TextField expectedOutputPathField = new TextField();
         expectedOutputPathField.setEditable(false);
         expectedOutputPathField.setPrefWidth(300);
@@ -158,7 +158,7 @@ public class GUI_Interface extends Application
         // Add everything to root
         root.getChildren().addAll(titleLabel, submissionsBox, testCaseBox, expectedOutputBox, base);
 
-        Scene scene = new Scene(root, 600, 310);
+        Scene scene = new Scene(root, 650, 310);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
