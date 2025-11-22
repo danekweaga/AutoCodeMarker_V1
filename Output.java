@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 /***************************************************************************************
  * @title   The Output class.
  *
@@ -5,8 +6,6 @@
  *          Aniekan Ekarika, Frances Felicidario
  * @version V1.0
  ***************************************************************************************/
-import java.util.ArrayList;
-
 public class Output
 {
     // Instance data
