@@ -18,7 +18,7 @@ public class Coord {
     }
 
     // run tests
-    public void runTests() {
+    public void runTests(String submissionFolder, String testSuiteFolder) {
         System.out.println("Run test button clicked");
     }
 
