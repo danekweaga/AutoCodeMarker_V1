@@ -6,14 +6,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
+
 import javafx.scene.layout.Priority;
 import java.util.ArrayList;
-import java.util.List;
 /***************************************************************************************
  * @title   The OutputViewer class.
  *
@@ -23,25 +22,25 @@ import java.util.List;
  ***************************************************************************************/
 public class OutputViewer extends Stage
 {
-    // Store multiple submissions' outputs; Next/Previous navigates submissions
-    private List<Output> outputs = new ArrayList<>();
-    private int currentIndex = 0;
+    private static final int RESULTS_PER_PAGE = 4;
+
+    private Output output;
+    private int currentPageIndex;
 
     private VBox resultsBox;
     private Label submissionNameLabel;
     private Label pageLabel;
     private Button prevButton;
     private Button nextButton;
-    private ScrollPane resultsScroll;
 
     /***********************************************************************************
      * Default constructor creating an empty OutputViewer window.
      ***********************************************************************************/
     public OutputViewer()
     {
-        this((Output) null);
+        this(null);
     }
-
+    
     /***********************************************************************************
      * Constructor that initializes the viewer for a given submission output.
      *
@@ -49,11 +48,8 @@ public class OutputViewer extends Stage
      ***********************************************************************************/
     public OutputViewer(Output output)
     {
-        if (output != null)
-        {
-            this.outputs.add(output);
-            this.currentIndex = 0;
-        }
+        this.output = output;
+        currentPageIndex = 0;
         initializeUI();
         updatePage();
     }
@@ -65,19 +61,8 @@ public class OutputViewer extends Stage
      ***********************************************************************************/
     public void setOutput(Output output)
     {
-        this.outputs.clear();
-        if (output != null) this.outputs.add(output);
-        this.currentIndex = 0;
-        updatePage();
-    }
-
-    /**
-     * Replace the current list of outputs (submissions) and show the first one.
-     */
-    public void setOutputs(List<Output> outputs)
-    {
-        this.outputs = outputs == null ? new ArrayList<>() : outputs;
-        this.currentIndex = 0;
+        this.output = output;
+        currentPageIndex = 0;
         updatePage();
     }
 
@@ -90,12 +75,10 @@ public class OutputViewer extends Stage
 
         BorderPane root = new BorderPane();
 
-    // Center area: scrollable vertical list of results
-    resultsBox = new VBox(10);
-    resultsBox.setPadding(new Insets(15));
-    resultsScroll = new ScrollPane(resultsBox);
-    resultsScroll.setFitToWidth(true);
-    root.setCenter(resultsScroll);
+        // Center area with 4 result slots
+        resultsBox = new VBox(10);
+        resultsBox.setPadding(new Insets(15));
+        root.setCenter(resultsBox);
 
         // Bottom bar with submission name, page info, and arrows
         submissionNameLabel = new Label();
@@ -109,18 +92,18 @@ public class OutputViewer extends Stage
 
         prevButton.setOnAction(e ->
         {
-            if (currentIndex > 0)
+            if (currentPageIndex > 0)
             {
-                currentIndex--;
+                currentPageIndex--;
                 updatePage();
             }
         });
 
         nextButton.setOnAction(e ->
         {
-            if (currentIndex < outputs.size() - 1)
+            if (hasNextPage())
             {
-                currentIndex++;
+                currentPageIndex++;
                 updatePage();
             }
         });
@@ -154,43 +137,62 @@ public class OutputViewer extends Stage
     {
         resultsBox.getChildren().clear();
 
-        resultsBox.getChildren().clear();
+        ArrayList<Result> results =
+                (output != null && output.getResults() != null)
+                        ? output.getResults()
+                        : new ArrayList<>();
 
-        Output output = (outputs.isEmpty() ? null : outputs.get(currentIndex));
-        List<Result> results = (output != null && output.getResults() != null)
-                ? output.getResults()
-                : new ArrayList<>();
+        int totalResults = results.size();
+        int totalPages = (totalResults == 0)
+                ? 0
+                : ((totalResults - 1) / RESULTS_PER_PAGE) + 1;
 
-        // Add all results to the scrollable list
-        for (Result r : results)
+        if (currentPageIndex >= totalPages && totalPages > 0)
         {
+            currentPageIndex = totalPages - 1;
+        }
+
+        int startIndex = currentPageIndex * RESULTS_PER_PAGE;
+        int endIndex = Math.min(startIndex + RESULTS_PER_PAGE, totalResults);
+
+        // Fill with real results
+        for (int i = startIndex; i < endIndex; i++)
+        {
+            Result r = results.get(i);
             resultsBox.getChildren().add(createResultRow(r));
         }
 
+        // If fewer than 4 results on this page, add empty placeholders
+        int placeholders = RESULTS_PER_PAGE - (endIndex - startIndex);
+        for (int i = 0; i < placeholders; i++)
+        {
+            resultsBox.getChildren().add(createEmptyRow());
+        }
+
         // Submission name at bottom-left
-        String submissionNameText = (output != null && output.getSubmissionName() != null)
-                ? output.getSubmissionName()
-                : "(no submission)";
+        String submissionNameText =
+                (output != null && output.getSubmissionName() != null)
+                        ? output.getSubmissionName()
+                        : "Submission Name";
         submissionNameLabel.setText(submissionNameText);
 
-        // Page indicator: submission index of total submissions
-        if (outputs.isEmpty())
+        // Page indicator X of Y (pages)
+        if (totalPages == 0)
         {
-            pageLabel.setText("0 of 0 submissions");
+            pageLabel.setText("0 of 0");
         }
         else
         {
-            pageLabel.setText((currentIndex + 1) + " of " + outputs.size() + " submissions");
+            pageLabel.setText((currentPageIndex + 1) + " of " + totalPages);
         }
 
         // Enable/disable arrows
-        prevButton.setDisable(currentIndex <= 0 || outputs.isEmpty());
-        nextButton.setDisable(outputs.isEmpty() || currentIndex >= outputs.size() - 1);
+        prevButton.setDisable(currentPageIndex <= 0);
+        nextButton.setDisable(!hasNextPage());
     }
 
     /***********************************************************************************
-     * Creates a visual row for a single testcase result and wires a click
-     * handler to open a detail view showing input, result, and status.
+     * Creates a visual row for a single testcase result.
      *
      * @param result the Result object to display
      * @return a VBox representing one row
@@ -218,9 +220,6 @@ public class OutputViewer extends Stage
         box.setPadding(new Insets(10));
         box.setStyle("-fx-background-color: #D3D3D3;");
 
-        // Click row to show detailed info
-        box.setOnMouseClicked(e -> showResultDetails(result));
-
         return box;
     }
 
@@ -245,56 +244,6 @@ public class OutputViewer extends Stage
         box.setStyle("-fx-background-color: #D3D3D3;");
 
         return box;
-    }
-
-    /***********************************************************************************
-     * Opens a small detail window showing the testcase name, input,
-     * result text, and result status for the selected row.
-     *
-     * NOTE: Currently the model does not store input separately,
-     * so the input is shown as "Not available yet". Once you extend
-     * Result or connect TestCase data, you can replace that.
-     *
-     * @param result the Result whose details to display
-     ***********************************************************************************/
-    private void showResultDetails(Result result)
-    {
-        Stage detailStage = new Stage();
-        detailStage.initOwner(this);
-        detailStage.setTitle("Testcase Details");
-
-        String testCaseName =
-                (result != null && result.getTestCaseName() != null)
-                        ? result.getTestCaseName()
-                        : "Testcase Name";
-
-        String resultText =
-                (result != null && result.getResult() != null)
-                        ? result.getResult()
-                        : "result";
-
-        VBox root = new VBox(8);
-        root.setPadding(new Insets(15));
-
-        Label nameLabel = new Label("Testcase: " + testCaseName);
-        nameLabel.setFont(Font.font("Consolas", 16));
-
-        // Placeholder until input is actually stored in your model
-        Label inputLabel = new Label("Input: (not available in Result yet)");
-        inputLabel.setFont(Font.font("Consolas", 14));
-
-        Label outputLabel = new Label("Result: " + resultText);
-        outputLabel.setFont(Font.font("Consolas", 14));
-
-        Label statusLabel = new Label("Status: " + resultText);
-        statusLabel.setFont(Font.font("Consolas", 14));
-
-        root.getChildren().addAll(nameLabel, inputLabel, outputLabel, statusLabel);
-
-        Scene scene = new Scene(root, 400, 160);
-        detailStage.setScene(scene);
-        detailStage.setResizable(false);
-        detailStage.show();
     }
 
     /***********************************************************************************
