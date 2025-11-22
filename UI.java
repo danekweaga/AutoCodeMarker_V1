@@ -83,18 +83,7 @@ public class UI extends Application
         HBox submissionsBox = new HBox(10, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
         submissionsBox.setAlignment(Pos.CENTER_LEFT);
 
-        // ---- Add Test Case (text file copied into Test Suite) ----
-        Label testCaseLabel = new Label("Add Test Case (.txt):");
-        testCasePathField = new TextField();
-        testCasePathField.setEditable(false);
-        testCasePathField.setPrefWidth(350);
-
-        Button addTestCaseButton = new Button("Add Test Case");
-        addTestCaseButton.setOnAction(e -> System.out.println("REMOVE THIS"));
-
-        HBox testCaseBox = new HBox(10, testCaseLabel, testCasePathField, addTestCaseButton);
-        testCaseBox.setAlignment(Pos.CENTER_LEFT);
-
+        
         // ---- Manage TestCases & Manage TestSuite (stylized rectangles) ----
         StackPane manageTestCasesButton = createRectButton("Manage TestCases", Color.LIGHTBLUE, this::manageTestCases);
         StackPane manageTestSuiteButton = createRectButton("Manage TestSuite", Color.LIGHTBLUE, this::manageTestSuite);
@@ -112,12 +101,11 @@ public class UI extends Application
         root.getChildren().addAll(
                 titleLabel,
                 submissionsBox,
-                testCaseBox,
                 manageBox,
                 runTestCasesButton
         );
 
-        Scene scene = new Scene(root, 750, 350);
+        Scene scene = new Scene(root, 600, 300);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
@@ -143,19 +131,22 @@ public class UI extends Application
         // Click actions on both rect & text
         pane.setOnMouseClicked(e -> 
         {
-            if (action != null) {
+            if (action != null) 
+            {
                 action.run();
             }
         });
         rect.setOnMouseClicked(e -> 
         {
-            if (action != null) {
+            if (action != null) 
+            {
                 action.run();
             }
         });
         text.setOnMouseClicked(e -> 
         {
-            if (action != null) {
+            if (action != null) 
+            {
                 action.run();
             }
         });
@@ -170,13 +161,14 @@ public class UI extends Application
         String userHome = System.getProperty("user.home");
         //Create the App folder
         baseFolder = Paths.get(userHome, "Auto Code Marker");
-        testSuiteFolder = baseFolder.resolve("Test Suite");
+        testSuiteFolder = baseFolder.resolve("Test Suites");
 
         //Make test suite subfolder
         try 
         {
             Files.createDirectories(testSuiteFolder);
-        } catch (IOException e) {
+        } catch (IOException e) 
+        {
             e.printStackTrace();
         }
     }
