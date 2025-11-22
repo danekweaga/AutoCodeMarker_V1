@@ -27,7 +27,7 @@ public class TestCaseManager extends Stage {
         // Base folder
         String userHome = System.getProperty("user.home");
         Path baseFolder = Paths.get(userHome, "Auto Code Marker");
-        Path testSuiteFolder = baseFolder.resolve("Test Suite");
+        Path testSuiteFolder = baseFolder.resolve("Test Suites");
 
         setTitle("Test Cases");
         setScene(scene);
