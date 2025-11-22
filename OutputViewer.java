@@ -200,14 +200,14 @@ public class OutputViewer extends Stage
     private VBox createResultRow(Result result)
     {
         String testCaseName =
-                (result != null && result.getTestCaseName() != null)
-                        ? result.getTestCaseName()
-                        : "Testcase Name";
+            (result != null && result.getTestCaseName() != null)
+                ? result.getTestCaseName()
+                : "Testcase Name";
 
         String resultText =
-                (result != null && result.getResult() != null)
-                        ? result.getResult()
-                        : "result";
+            (result != null && result.getResult() != null)
+                ? result.getResult()
+                : "result";
 
         Label nameLabel = new Label(testCaseName);
         nameLabel.setFont(Font.font("Consolas", 16));
@@ -219,6 +219,39 @@ public class OutputViewer extends Stage
         VBox box = new VBox(4, nameLabel, resultLabel);
         box.setPadding(new Insets(10));
         box.setStyle("-fx-background-color: #D3D3D3;");
+
+        // Click to show detailed information
+        box.setOnMouseClicked(e ->
+        {
+            if (result != null)
+            {
+                StringBuilder details = new StringBuilder();
+                details.append("Status: ").append(result.getResult()).append("\n\n");
+
+                if (result.getInput() != null)
+                {
+                    details.append("Input: ").append(result.getInput()).append("\n");
+                }
+                if (result.getExpectedOutput() != null)
+                {
+                    details.append("Expected: ").append(result.getExpectedOutput()).append("\n");
+                }
+                if (result.getActualOutput() != null)
+                {
+                    details.append("Actual: ").append(result.getActualOutput()).append("\n");
+                }
+
+                javafx.scene.control.Alert alert =
+                    new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.INFORMATION,
+                        details.toString(),
+                        javafx.scene.control.ButtonType.OK);
+                alert.setTitle("Test Case Details");
+                alert.setHeaderText(testCaseName);
+                alert.initOwner(this);
+                alert.showAndWait();
+            }
+        });
 
         return box;
     }
