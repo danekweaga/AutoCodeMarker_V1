@@ -1,7 +1,6 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
@@ -18,17 +17,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ComboBox;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 /***************************************************************************************
- * Write a description of class UI here.
+ * @title   The UI class.
  *
- * @author Alamin Adeleke, Chuckwunonso Ekweaga, Aniekan Ekarika, Frances Felicidario
- * @version 1
+ * @author  Alamin Adeleke, Chuckwunonso Ekweaga,
+ *          Aniekan Ekarika, Frances Felicidario
+ * @version V1.0
  ***************************************************************************************/
 public class UI extends Application
 {
@@ -37,24 +37,35 @@ public class UI extends Application
     private Path testSuiteFolder;
     private Coord c;
     private String chosenSuite;
+
     // Variable to store selected test suite name
     private final StringProperty selectedTestSuite = new SimpleStringProperty();
 
     private TextField submissionsPathField;
     private TextField testCasePathField;
-    
+
+    /***********************************************************************************
+     * Launches the application.
+     *
+     * @param args runtime arguments
+     ***********************************************************************************/
     public static void main(String[] args)
     {
         launch(args);
     }
 
+    /***********************************************************************************
+     * Initializes and renders the primary UI window.
+     *
+     * @param primaryStage the application’s main window
+     ***********************************************************************************/
     @Override
-    public void start(Stage primaryStage) 
+    public void start(Stage primaryStage)
     {
         // ---- Initialize folders ----
         initializeFolders();
-        
-        // ---- Initialize Coordinator
+
+        // ---- Initialize Coordinator ----
         c = new Coord(primaryStage);
 
         primaryStage.setTitle("Auto Code Marker");
@@ -62,7 +73,7 @@ public class UI extends Application
         // ---- Title Label ----
         Label titleLabel = new Label("Auto Code Marker");
         titleLabel.setFont(Font.font("Consolas", 38));
-        titleLabel.setTextFill(Color.web("#00BFFF")); // blue
+        titleLabel.setTextFill(Color.web("#00BFFF"));
         titleLabel.setStyle("-fx-font-weight: bold;");
         titleLabel.setMaxWidth(Double.MAX_VALUE);
         titleLabel.setAlignment(Pos.CENTER);
@@ -74,63 +85,73 @@ public class UI extends Application
         submissionsPathField.setPrefWidth(350);
 
         Button chooseSubmissionsButton = new Button("Browse");
-        chooseSubmissionsButton.setOnAction(e -> 
+        chooseSubmissionsButton.setOnAction(e ->
         {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Select Submission Folder");
             File folder = directoryChooser.showDialog(primaryStage);
-            if (folder != null) {
+            if (folder != null)
+            {
                 submissionsFolder = folder.getAbsolutePath();
                 submissionsPathField.setText(submissionsFolder);
             }
         });
 
-        HBox submissionsBox = new HBox(10, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
+        HBox submissionsBox =
+                new HBox(10, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
         submissionsBox.setAlignment(Pos.CENTER_LEFT);
 
         // --- Test Suite Dropdown Section ---
-
         Label testSuiteLabel = new Label("Choose Test Suite");
-        
-        // ComboBox for listing test suite folders
+
         ComboBox<String> testSuiteDropdown = new ComboBox<>();
         testSuiteDropdown.setPromptText("Select a test suite");
-        
+
         HBox testSuitBox = new HBox(10, testSuiteLabel, testSuiteDropdown);
         testSuitBox.setAlignment(Pos.CENTER_LEFT);
-        
+
         // Folder where test suite names are stored
-        File testSuitesDir = new File(System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites");
-        
+        File testSuitesDir =
+                new File(System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites");
+
         // Load folder names into dropdown
-        if (testSuitesDir.exists() && testSuitesDir.isDirectory()) 
+        if (testSuitesDir.exists() && testSuitesDir.isDirectory())
         {
             File[] folders = testSuitesDir.listFiles(File::isDirectory);
-            if (folders != null) 
+            if (folders != null)
             {
-                for (File f : folders) {
+                for (File f : folders)
+                {
                     testSuiteDropdown.getItems().add(f.getName());
                 }
             }
         }
-        
-        
-        
-        testSuiteDropdown.setOnAction(e -> {
+
+        testSuiteDropdown.setOnAction(e ->
+        {
             selectedTestSuite.set(testSuiteDropdown.getValue());
             System.out.println("Selected Test Suite: " + selectedTestSuite.get());
         });
 
-
         // ---- Manage TestCases & Manage TestSuite (stylized rectangles) ----
-        StackPane manageTestCasesButton = createRectButton("Manage TestCases", Color.LIGHTBLUE, this::manageTestCases);
-        StackPane manageTestSuiteButton = createRectButton("Manage TestSuite", Color.LIGHTBLUE, this::manageTestSuite);
+        StackPane manageTestCasesButton =
+                createRectButton("Manage TestCases",
+                        Color.LIGHTBLUE,
+                        this::manageTestCases);
+
+        StackPane manageTestSuiteButton =
+                createRectButton("Manage TestSuite",
+                        Color.LIGHTBLUE,
+                        this::manageTestSuite);
 
         HBox manageBox = new HBox(15, manageTestCasesButton, manageTestSuiteButton);
         manageBox.setAlignment(Pos.CENTER_LEFT);
 
         // ---- Run Test Cases button (stylized rectangle) ----
-        StackPane runTestCasesButton = createRectButton("Run Test Cases", Color.LIGHTGREEN, this::runTestCases);
+        StackPane runTestCasesButton =
+                createRectButton("Run Test Cases",
+                        Color.LIGHTGREEN,
+                        this::runTestCases);
 
         // ---- Layout (mostly top-to-bottom) ----
         VBox root = new VBox(22);
@@ -142,7 +163,6 @@ public class UI extends Application
                 testSuitBox,
                 manageBox,
                 runTestCasesButton
-                
         );
 
         Scene scene = new Scene(root, 600, 300);
@@ -151,8 +171,16 @@ public class UI extends Application
         primaryStage.show();
     }
 
-    //Method to format ui buttons
-    private StackPane createRectButton(String label, Color fillColor, Runnable action) {
+    /***********************************************************************************
+     * Method to create a stylized rectangle "button" with hover and click behavior.
+     *
+     * @param label     the text displayed on the button
+     * @param fillColor the background color of the rectangle
+     * @param action    the action to execute when clicked
+     * @return the configured StackPane representing the button
+     ***********************************************************************************/
+    private StackPane createRectButton(String label, Color fillColor, Runnable action)
+    {
         Rectangle rect = new Rectangle(160, 40);
         rect.setFill(fillColor);
         rect.setArcWidth(20);
@@ -168,24 +196,24 @@ public class UI extends Application
         pane.setOnMouseEntered(e -> rect.setOpacity(0.7));
         pane.setOnMouseExited(e -> rect.setOpacity(1.0));
 
-        // Click actions on both rect & text
-        pane.setOnMouseClicked(e -> 
+        // Click actions on rect & text
+        pane.setOnMouseClicked(e ->
         {
-            if (action != null) 
+            if (action != null)
             {
                 action.run();
             }
         });
-        rect.setOnMouseClicked(e -> 
+        rect.setOnMouseClicked(e ->
         {
-            if (action != null) 
+            if (action != null)
             {
                 action.run();
             }
         });
-        text.setOnMouseClicked(e -> 
+        text.setOnMouseClicked(e ->
         {
-            if (action != null) 
+            if (action != null)
             {
                 action.run();
             }
@@ -193,41 +221,47 @@ public class UI extends Application
 
         return pane;
     }
-    
-    //Method to create app folder
-    private void initializeFolders() 
+
+    /***********************************************************************************
+     * Creates application directories if they do not already exist.
+     ***********************************************************************************/
+    private void initializeFolders()
     {
-        //get the users folder name
         String userHome = System.getProperty("user.home");
-        //Create the App folder
         baseFolder = Paths.get(userHome, "Auto Code Marker");
         testSuiteFolder = baseFolder.resolve("Test Suites");
 
-        //Make test suite subfolder
-        try 
+        try
         {
             Files.createDirectories(testSuiteFolder);
-        } catch (IOException e) 
+        }
+        catch (IOException e)
         {
             e.printStackTrace();
         }
     }
-    
-    
-    // ----------------- Empty Handlers (to implement later) ----------------
 
-    private void manageTestSuite() 
+    /***********************************************************************************
+     * Opens the TestSuiteManager window and updates the chosenSuite field.
+     ***********************************************************************************/
+    private void manageTestSuite()
     {
         c.manageTestSuites();
         chosenSuite = selectedTestSuite.get();
     }
 
-    private void manageTestCases() 
+    /***********************************************************************************
+     * Opens the TestCaseManager window.
+     ***********************************************************************************/
+    private void manageTestCases()
     {
         c.manageTestCases();
     }
 
-    private void runTestCases() 
+    /***********************************************************************************
+     * Triggers running the test cases via the coordinator.
+     ***********************************************************************************/
+    private void runTestCases()
     {
         c.runTests();
     }
