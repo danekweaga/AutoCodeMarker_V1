@@ -1,6 +1,7 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
 import java.awt.TextField;
+import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,31 @@ public class UI extends Application
             Files.createDirectories(testSuiteFolder);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    
+    //Method to add testCases
+     private void addTestCase(Stage stage) 
+     {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Test Case File");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Text Files", "*.txt")
+        );
+
+        File file = fileChooser.showOpenDialog(stage);
+        if (file != null) 
+        {
+            Path source = file.toPath();
+            Path dest = testSuiteFolder.resolve(file.getName());
+            try 
+            {
+                Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
+                testCasePathField.setText(dest.toString());
+            } catch (IOException ex) 
+            {
+                ex.printStackTrace();
+            }
         }
     }
     
