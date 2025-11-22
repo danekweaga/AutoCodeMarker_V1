@@ -1,17 +1,21 @@
-/**
- * Write a description of class TestCase here.
- *
- * @author (your name)
- * @version (a version number or a date)
- */
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
-
-public class OutputViewer extends Stage {
-
-    public OutputViewer() {
+/***************************************************************************************
+ * @title   The OutputViewer class.
+ *
+ * @author  Alamin Adeleke, Chuckwunonso Ekweaga,
+ *          Aniekan Ekarika, Frances Felicidario
+ * @version V1.0
+ ***************************************************************************************/
+public class OutputViewer extends Stage
+{
+    /***********************************************************************************
+     * Default constructor that initializes and displays the OutputViewer window.
+     ***********************************************************************************/
+    public OutputViewer()
+    {
         StackPane root = new StackPane(new Label("Child window"));
         Scene scene = new Scene(root, 300, 200);
 
