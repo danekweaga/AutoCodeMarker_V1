@@ -1,3 +1,9 @@
+/**
+ * Write a description of class TestCase here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
 import javafx.stage.Stage;
 import javafx.stage.Modality;
 

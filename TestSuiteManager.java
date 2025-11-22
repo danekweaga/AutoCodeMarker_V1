@@ -1,4 +1,9 @@
-// ChildWindow.java
+/**
+ * Write a description of class TestCase here.
+ *
+ * @author (your name)
+ * @version (a version number or a date)
+ */
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
