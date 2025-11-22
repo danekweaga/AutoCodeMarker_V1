@@ -6,11 +6,13 @@
  */
 public class TestCase
 {
+    String name;
     String input;
     String expectedOutput;
     
-    public TestCase(String input, String expectedOutput)
+    public TestCase(String name, String input, String expectedOutput)
     {
+        this.name = name;
         this.input = input;
         this.expectedOutput = expectedOutput;
     }
