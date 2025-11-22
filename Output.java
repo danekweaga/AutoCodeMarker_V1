@@ -9,6 +9,7 @@ public class Ouput
 {
     //Instance data
     Arraylist<Result> result;
+    String submissionName;
 
     public void addResult(Result result)
     {
