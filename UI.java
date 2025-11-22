@@ -34,6 +34,7 @@ public class UI extends Application
     private String submissionsFolder;
     private Path baseFolder;
     private Path testSuiteFolder;
+    private Coord c;
 
     private TextField submissionsPathField;
     private TextField testCasePathField;
@@ -48,6 +49,9 @@ public class UI extends Application
     {
         // ---- Initialize folders ----
         initializeFolders();
+        
+        // ---- Initialize Coordinator
+        c = new Coord(primaryStage);
 
         primaryStage.setTitle("Auto Code Marker");
 
@@ -86,7 +90,7 @@ public class UI extends Application
         testCasePathField.setPrefWidth(350);
 
         Button addTestCaseButton = new Button("Add Test Case");
-        addTestCaseButton.setOnAction(e -> addTestCase(primaryStage));
+        addTestCaseButton.setOnAction(e -> System.out.println("REMOVE THIS"));
 
         HBox testCaseBox = new HBox(10, testCaseLabel, testCasePathField, addTestCaseButton);
         testCaseBox.setAlignment(Pos.CENTER_LEFT);
@@ -177,49 +181,21 @@ public class UI extends Application
         }
     }
     
-    //Method to add testCases
-     private void addTestCase(Stage stage) 
-     {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Test Case File");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Text Files", "*.txt")
-        );
-
-        File file = fileChooser.showOpenDialog(stage);
-        if (file != null) 
-        {
-            Path source = file.toPath();
-            Path dest = testSuiteFolder.resolve(file.getName());
-            try 
-            {
-                Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
-                testCasePathField.setText(dest.toString());
-            } catch (IOException ex) 
-            {
-                ex.printStackTrace();
-            }
-        }
-    }
     
-    // ----------------- Empty Handlers (to implement later) -----------------
-
-    private void manageTestCases() 
-    {
-        // TODO: implement Manage TestCases logic
-        System.out.println("Manage TestCases clicked.");
-    }
+    // ----------------- Empty Handlers (to implement later) ----------------
 
     private void manageTestSuite() 
     {
-        // TODO: implement Manage TestSuite logic
-        System.out.println("Manage TestSuite clicked.");
+        c.manageTestSuites();
+    }
+
+    private void manageTestCases() 
+    {
+        c.manageTestCases();
     }
 
     private void runTestCases() 
     {
-        // TODO: implement Run Test Cases logic
-        System.out.println("Run Test Cases clicked.");
+        c.runTests();
     }
-
 }
