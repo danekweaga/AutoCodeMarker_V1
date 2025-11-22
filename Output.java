@@ -1,68 +1,62 @@
+import java.util.ArrayList;
 /***************************************************************************************
- * @title   The TestCase class.
+ * @title   The Output class.
  *
  * @author  Alamin Adeleke, Chukwunonso Ekweaga,
  *          Aniekan Ekarika, Frances Felicidario
- * @version Final Version
+ * @version V1.0
  ***************************************************************************************/
-public class TestCase
+public class Output
 {
     // Instance data
-    private String name;
-    private String input;
-    private String expectedOutput;
+    private ArrayList<Result> results;
+    private String submissionName;
 
     /***********************************************************************************
-     * Constructor to initialize a test case with its name, input, and expected output.
-     *
-     * @param name            the test case label
-     * @param input           the input provided to the student's program
-     * @param expectedOutput  the expected result for comparison
+     * Default constructor initializing storage for Result objects.
      ***********************************************************************************/
-    public TestCase(String name, String input, String expectedOutput)
+    public Output()
     {
-        this.name = name;
-        this.input = input;
-        this.expectedOutput = expectedOutput;
+        results = new ArrayList<>();
     }
 
     /***********************************************************************************
-     * Gets the input value for this test case.
+     * Adds a Result object to this Output's list of results.
      *
-     * @return the input string
+     * @param result the Result object to store
      ***********************************************************************************/
-    public String getInput()
+    public void addResult(Result result)
     {
-        return input;
+        results.add(result);
     }
 
     /***********************************************************************************
-     * Gets the expected output for this test case.
+     * Gets the name of the submission associated with this Output.
      *
-     * @return the expected output string
+     * @return the submission name
      ***********************************************************************************/
-    public String getExpectedOutput()
+    public String getSubmissionName()
     {
-        return expectedOutput;
+        return submissionName;
     }
 
     /***********************************************************************************
-     * Sets the input value for this test case.
+     * Sets the submission name for this Output.
      *
-     * @param input the new input string
+     * @param submissionName the name to assign
      ***********************************************************************************/
-    public void setInput(String input)
+    public void setSubmissionName(String submissionName)
     {
-        this.input = input;
+        this.submissionName = submissionName;
     }
 
     /***********************************************************************************
-     * Sets the expected output value for this test case.
+     * Gets all stored Result objects.
      *
-     * @param expectedOutput the new expected output string
+     * @return the list of results
      ***********************************************************************************/
-    public void setExpectedOutput(String expectedOutput)
+    public ArrayList<Result> getResults()
     {
-        this.expectedOutput = expectedOutput;
+        return results;
     }
 }
