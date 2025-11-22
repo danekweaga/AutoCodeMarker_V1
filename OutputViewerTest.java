@@ -1,44 +1,121 @@
-import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /***************************************************************************************
- * @title   The OutputViewerTest class.
+ * @title   The OutputViewer class.
  *
- * @author  Alamin Adeleke, Chuckwunonso Ekweaga,
- *          Aniekan Ekarika, Frances Felicidario
- * @version V1.0
+ * @version V2.0
+ *
+ * Shows multiple Result objects with left/right navigation
+ * and a vertical scrollable list of all outputs.
  ***************************************************************************************/
-public class OutputViewerTest extends Application
+public class OutputViewer extends Stage
 {
-    /***********************************************************************************
-     * Launches the JavaFX test application.
-     *
-     * @param args runtime arguments
-     ***********************************************************************************/
-    public static void main(String[] args)
+    private List<Result> results = new ArrayList<>();
+    private int currentIndex = 0;
+
+    private Label submissionNameLabel;
+    private Label resultLabel;
+
+    private Button prevButton;
+    private Button nextButton;
+
+    private VBox scrollContainer;
+    private ScrollPane scrollPane;
+
+    public OutputViewer(Output output)
     {
-        launch(args);
+        this.results = new ArrayList<>(output.getResults());
+
+        BorderPane root = new BorderPane();
+        root.setPadding(new Insets(20));
+
+        submissionNameLabel = new Label(output.getSubmissionName());
+        submissionNameLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+
+        // Current result display
+        resultLabel = new Label();
+        resultLabel.setStyle("-fx-font-size: 16px;");
+
+        updateDisplayedResult();
+
+        // Navigation buttons
+        prevButton = new Button("<");
+        nextButton = new Button(">");
+
+        prevButton.setOnAction(e -> showPrevious());
+        nextButton.setOnAction(e -> showNext());
+
+        HBox navBar = new HBox(10, prevButton, nextButton);
+        navBar.setAlignment(Pos.CENTER);
+
+        // Scrollable list of all results
+        scrollContainer = new VBox(10);
+        scrollContainer.setPadding(new Insets(10));
+
+        for (Result r : results) {
+            Label item = new Label(r.getTestCaseName() + " — " + r.getOutcome());
+            item.setStyle("-fx-font-size: 14px;");
+            scrollContainer.getChildren().add(item);
+        }
+
+        scrollPane = new ScrollPane(scrollContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(250);
+
+        VBox centerBox = new VBox(20, resultLabel, navBar, scrollPane);
+        centerBox.setAlignment(Pos.TOP_CENTER);
+
+        root.setTop(submissionNameLabel);
+        BorderPane.setAlignment(submissionNameLabel, Pos.CENTER);
+
+        root.setCenter(centerBox);
+
+        Scene scene = new Scene(root, 400, 450);
+        setScene(scene);
+        setTitle("Output Viewer");
     }
 
-    /***********************************************************************************
-     * Creates a sample Output with dummy Result data and opens the OutputViewer.
-     *
-     * @param primaryStage the primary stage provided by JavaFX (unused as owner here)
-     ***********************************************************************************/
-    @Override
-    public void start(Stage primaryStage)
+    private void updateDisplayedResult()
     {
-        // Build a dummy Output object for testing
-        Output output = new Output();
-        output.setSubmissionName("SampleSubmission.java");
+        if (results.isEmpty()) {
+            resultLabel.setText("No results available.");
+            return;
+        }
 
-        output.addResult(new Result("Testcase 1", "PASS"));
-        output.addResult(new Result("Testcase 2", "FAIL"));
-        output.addResult(new Result("Edge Case 3", "PASS"));
-        output.addResult(new Result("Big Input 4", "PASS"));
-        output.addResult(new Result("Extra Case 5", "FAIL"));
+        Result current = results.get(currentIndex);
+        resultLabel.setText(
+                current.getTestCaseName() + "\nResult: " + current.getOutcome()
+        );
 
-        // Show the OutputViewer window
-        OutputViewer viewer = new OutputViewer(output);
-        viewer.show();
+        prevButton.setDisable(currentIndex == 0);
+        nextButton.setDisable(currentIndex == results.size() - 1);
+    }
+
+    private void showPrevious()
+    {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateDisplayedResult();
+        }
+    }
+
+    private void showNext()
+    {
+        if (currentIndex < results.size() - 1) {
+            currentIndex++;
+            updateDisplayedResult();
+        }
     }
 }
