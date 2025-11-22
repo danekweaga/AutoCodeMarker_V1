@@ -1,15 +1,17 @@
-/**
- * Write a description of class TestCase here.
+/* *****************************************************
+ * @title    TestSuiteManager class
  *
- * @author (your name)
- * @version (a version number or a date)
- */
+ * @author Frances Felicidario, Alamin Adeleke
+ * @version V1.0
+ * *****************************************************/
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import java.io.File;
 
