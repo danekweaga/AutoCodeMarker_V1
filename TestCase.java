@@ -1,7 +1,7 @@
 /***************************************************************************************
  * @title   The TestCase class.
  *
- * @author  Alamin Adeleke, Chuckwunonso Ekweaga,
+ * @author  Alamin Adeleke, Chukwunonso Ekweaga,
  *          Aniekan Ekarika, Frances Felicidario
  * @version Final Version
  ***************************************************************************************/

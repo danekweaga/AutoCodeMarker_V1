@@ -2,7 +2,7 @@ import java.util.ArrayList;
 /***************************************************************************************
  * @title   The Output class.
  *
- * @author  Alamin Adeleke, Chuckwunonso Ekweaga,
+ * @author  Alamin Adeleke, Chukwunonso Ekweaga,
  *          Aniekan Ekarika, Frances Felicidario
  * @version V1.0
  ***************************************************************************************/

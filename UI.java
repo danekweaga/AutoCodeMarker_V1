@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 /***************************************************************************************
  * @title   The UI class.
  *
- * @author  Alamin Adeleke, Chuckwunonso Ekweaga,
+ * @author  Alamin Adeleke, Chukwunonso Ekweaga,
  *          Aniekan Ekarika, Frances Felicidario
  * @version V1.0
  ***************************************************************************************/

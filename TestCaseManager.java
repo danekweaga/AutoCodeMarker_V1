@@ -11,7 +11,7 @@ import java.util.List;
 /***************************************************************************************
  * @title   The TestCaseManager class.
  *
- * @author  Alamin Adeleke, Chuckwunonso Ekweaga,
+ * @author  Alamin Adeleke, Chukwunonso Ekweaga,
  *          Aniekan Ekarika, Frances Felicidario
  * @version V1.0
  ***************************************************************************************/
