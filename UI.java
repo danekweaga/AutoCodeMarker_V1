@@ -1,7 +1,20 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
-import java.awt.TextField;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.scene.Scene;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.text.Font;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import javafx.scene.layout.StackPane;
+import javafx.scene.control.TextField;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +48,115 @@ public class UI extends Application
     {
         // ---- Initialize folders ----
         initializeFolders();
+
+        primaryStage.setTitle("Auto Code Marker");
+
+        // ---- Title Label ----
+        Label titleLabel = new Label("Auto Code Marker");
+        titleLabel.setFont(Font.font("Consolas", 38));
+        titleLabel.setTextFill(Color.web("#00BFFF")); // blue
+        titleLabel.setStyle("-fx-font-weight: bold;");
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        titleLabel.setAlignment(Pos.CENTER);
+
+        // ---- Select Submission Folder ----
+        Label submissionsLabel = new Label("Select Submission Folder:");
+        submissionsPathField = new TextField();
+        submissionsPathField.setEditable(false);
+        submissionsPathField.setPrefWidth(350);
+
+        Button chooseSubmissionsButton = new Button("Browse");
+        chooseSubmissionsButton.setOnAction(e -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select Submission Folder");
+            File folder = directoryChooser.showDialog(primaryStage);
+            if (folder != null) {
+                submissionsFolder = folder.getAbsolutePath();
+                submissionsPathField.setText(submissionsFolder);
+            }
+        });
+
+        HBox submissionsBox = new HBox(10, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
+        submissionsBox.setAlignment(Pos.CENTER_LEFT);
+
+        // ---- Add Test Case (text file copied into Test Suite) ----
+        Label testCaseLabel = new Label("Add Test Case (.txt):");
+        testCasePathField = new TextField();
+        testCasePathField.setEditable(false);
+        testCasePathField.setPrefWidth(350);
+
+        Button addTestCaseButton = new Button("Add Test Case");
+        addTestCaseButton.setOnAction(e -> addTestCase(primaryStage));
+
+        HBox testCaseBox = new HBox(10, testCaseLabel, testCasePathField, addTestCaseButton);
+        testCaseBox.setAlignment(Pos.CENTER_LEFT);
+
+        // ---- Manage TestCases & Manage TestSuite (stylized rectangles) ----
+        StackPane manageTestCasesButton = createRectButton("Manage TestCases", Color.LIGHTBLUE, this::manageTestCases);
+        StackPane manageTestSuiteButton = createRectButton("Manage TestSuite", Color.LIGHTBLUE, this::manageTestSuite);
+
+        HBox manageBox = new HBox(15, manageTestCasesButton, manageTestSuiteButton);
+        manageBox.setAlignment(Pos.CENTER_LEFT);
+
+        // ---- Run Test Cases button (stylized rectangle) ----
+        StackPane runTestCasesButton = createRectButton("Run Test Cases", Color.LIGHTGREEN, this::runTestCases);
+
+        // ---- Layout (mostly top-to-bottom) ----
+        VBox root = new VBox(22);
+        root.setPadding(new Insets(20));
+        root.setAlignment(Pos.TOP_LEFT);
+        root.getChildren().addAll(
+                titleLabel,
+                submissionsBox,
+                testCaseBox,
+                manageBox,
+                runTestCasesButton
+        );
+
+        Scene scene = new Scene(root, 750, 350);
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
+        primaryStage.show();
+    }
+
+    //Method to format ui buttons
+    private StackPane createRectButton(String label, Color fillColor, Runnable action) {
+        Rectangle rect = new Rectangle(160, 40);
+        rect.setFill(fillColor);
+        rect.setArcWidth(20);
+        rect.setArcHeight(20);
+
+        Text text = new Text(label);
+        text.setFont(Font.font("Arial", 13));
+        text.setFill(Color.BLACK);
+
+        StackPane pane = new StackPane(rect, text);
+
+        // Hover effect
+        pane.setOnMouseEntered(e -> rect.setOpacity(0.7));
+        pane.setOnMouseExited(e -> rect.setOpacity(1.0));
+
+        // Click actions on both rect & text
+        pane.setOnMouseClicked(e -> 
+        {
+            if (action != null) {
+                action.run();
+            }
+        });
+        rect.setOnMouseClicked(e -> 
+        {
+            if (action != null) {
+                action.run();
+            }
+        });
+        text.setOnMouseClicked(e -> 
+        {
+            if (action != null) {
+                action.run();
+            }
+        });
+
+        return pane;
     }
     
     //Method to create app folder
