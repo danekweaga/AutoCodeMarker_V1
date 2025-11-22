@@ -15,6 +15,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.layout.StackPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ComboBox;
+import javafx.beans.property.StringProperty;
+import javafx.beans.property.SimpleStringProperty;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +38,9 @@ public class UI extends Application
     private Path baseFolder;
     private Path testSuiteFolder;
     private Coord c;
+    private String chosenSuite;
+    // Variable to store selected test suite name
+    private final StringProperty selectedTestSuite = new SimpleStringProperty();
 
     private TextField submissionsPathField;
     private TextField testCasePathField;
@@ -70,7 +76,8 @@ public class UI extends Application
         submissionsPathField.setPrefWidth(350);
 
         Button chooseSubmissionsButton = new Button("Browse");
-        chooseSubmissionsButton.setOnAction(e -> {
+        chooseSubmissionsButton.setOnAction(e -> 
+        {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Select Submission Folder");
             File folder = directoryChooser.showDialog(primaryStage);
@@ -83,7 +90,40 @@ public class UI extends Application
         HBox submissionsBox = new HBox(10, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
         submissionsBox.setAlignment(Pos.CENTER_LEFT);
 
+        // --- Test Suite Dropdown Section ---
+
+        Label testSuiteLabel = new Label("Choose Test Suite");
         
+        // ComboBox for listing test suite folders
+        ComboBox<String> testSuiteDropdown = new ComboBox<>();
+        testSuiteDropdown.setPromptText("Select a test suite");
+        
+        HBox testSuitBox = new HBox(10, testSuiteLabel, testSuiteDropdown);
+        testSuitBox.setAlignment(Pos.CENTER_LEFT);
+        
+        // Folder where test suite names are stored
+        File testSuitesDir = new File(System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites");
+        
+        // Load folder names into dropdown
+        if (testSuitesDir.exists() && testSuitesDir.isDirectory()) 
+        {
+            File[] folders = testSuitesDir.listFiles(File::isDirectory);
+            if (folders != null) 
+            {
+                for (File f : folders) {
+                    testSuiteDropdown.getItems().add(f.getName());
+                }
+            }
+        }
+        
+        
+        
+        testSuiteDropdown.setOnAction(e -> {
+            selectedTestSuite.set(testSuiteDropdown.getValue());
+            System.out.println("Selected Test Suite: " + selectedTestSuite.get());
+        });
+
+
         // ---- Manage TestCases & Manage TestSuite (stylized rectangles) ----
         StackPane manageTestCasesButton = createRectButton("Manage TestCases", Color.LIGHTBLUE, this::manageTestCases);
         StackPane manageTestSuiteButton = createRectButton("Manage TestSuite", Color.LIGHTBLUE, this::manageTestSuite);
@@ -101,8 +141,10 @@ public class UI extends Application
         root.getChildren().addAll(
                 titleLabel,
                 submissionsBox,
+                testSuitBox,
                 manageBox,
                 runTestCasesButton
+                
         );
 
         Scene scene = new Scene(root, 600, 300);
@@ -179,6 +221,7 @@ public class UI extends Application
     private void manageTestSuite() 
     {
         c.manageTestSuites();
+        chosenSuite = selectedTestSuite.get();
     }
 
     private void manageTestCases() 
