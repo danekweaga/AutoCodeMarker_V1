@@ -22,17 +22,20 @@ public class UI extends Application
     
     // ----------------- Empty Handlers (to implement later) -----------------
 
-    private void manageTestCases() {
+    private void manageTestCases() 
+    {
         // TODO: implement Manage TestCases logic
         System.out.println("Manage TestCases clicked.");
     }
 
-    private void manageTestSuite() {
+    private void manageTestSuite() 
+    {
         // TODO: implement Manage TestSuite logic
         System.out.println("Manage TestSuite clicked.");
     }
 
-    private void runTestCases() {
+    private void runTestCases() 
+    {
         // TODO: implement Run Test Cases logic
         System.out.println("Run Test Cases clicked.");
     }
