@@ -10,7 +10,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
-
 import javafx.scene.layout.Priority;
 import java.util.ArrayList;
 /***************************************************************************************
@@ -40,7 +39,7 @@ public class OutputViewer extends Stage
     {
         this(null);
     }
-    
+
     /***********************************************************************************
      * Constructor that initializes the viewer for a given submission output.
      *
@@ -192,7 +191,8 @@ public class OutputViewer extends Stage
     }
 
     /***********************************************************************************
-     * Creates a visual row for a single testcase result.
+     * Creates a visual row for a single testcase result and wires a click
+     * handler to open a detail view showing input, result, and status.
      *
      * @param result the Result object to display
      * @return a VBox representing one row
@@ -220,6 +220,9 @@ public class OutputViewer extends Stage
         box.setPadding(new Insets(10));
         box.setStyle("-fx-background-color: #D3D3D3;");
 
+        // Click row to show detailed info
+        box.setOnMouseClicked(e -> showResultDetails(result));
+
         return box;
     }
 
@@ -244,6 +247,56 @@ public class OutputViewer extends Stage
         box.setStyle("-fx-background-color: #D3D3D3;");
 
         return box;
+    }
+
+    /***********************************************************************************
+     * Opens a small detail window showing the testcase name, input,
+     * result text, and result status for the selected row.
+     *
+     * NOTE: Currently the model does not store input separately,
+     * so the input is shown as "Not available yet". Once you extend
+     * Result or connect TestCase data, you can replace that.
+     *
+     * @param result the Result whose details to display
+     ***********************************************************************************/
+    private void showResultDetails(Result result)
+    {
+        Stage detailStage = new Stage();
+        detailStage.initOwner(this);
+        detailStage.setTitle("Testcase Details");
+
+        String testCaseName =
+                (result != null && result.getTestCaseName() != null)
+                        ? result.getTestCaseName()
+                        : "Testcase Name";
+
+        String resultText =
+                (result != null && result.getResult() != null)
+                        ? result.getResult()
+                        : "result";
+
+        VBox root = new VBox(8);
+        root.setPadding(new Insets(15));
+
+        Label nameLabel = new Label("Testcase: " + testCaseName);
+        nameLabel.setFont(Font.font("Consolas", 16));
+
+        // Placeholder until input is actually stored in your model
+        Label inputLabel = new Label("Input: (not available in Result yet)");
+        inputLabel.setFont(Font.font("Consolas", 14));
+
+        Label outputLabel = new Label("Result: " + resultText);
+        outputLabel.setFont(Font.font("Consolas", 14));
+
+        Label statusLabel = new Label("Status: " + resultText);
+        statusLabel.setFont(Font.font("Consolas", 14));
+
+        root.getChildren().addAll(nameLabel, inputLabel, outputLabel, statusLabel);
+
+        Scene scene = new Scene(root, 400, 160);
+        detailStage.setScene(scene);
+        detailStage.setResizable(false);
+        detailStage.show();
     }
 
     /***********************************************************************************
