@@ -17,7 +17,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ComboBox;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
