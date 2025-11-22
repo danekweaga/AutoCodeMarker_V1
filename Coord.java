@@ -30,7 +30,7 @@ public class Coord
      * @param submissionFolder the folder containing student submissions
      * @param testSuiteFolder  the folder containing the selected test suite
      ***********************************************************************************/
-    public void runTests(String submissionFolder, String testSuiteFolder)
+    public void runTests(/*String submissionFolder, String testSuiteFolder*/)
     {
         System.out.println("Run test button clicked");
     }
