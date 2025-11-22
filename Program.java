@@ -1,6 +1,5 @@
 /***************************************************************************************
  * @title   The Program class.
- * @desc    Compiles and runs single Java submissions with input support
  *
  * @author  Frances Felicidario
  * @version V1 11-22-25
