@@ -58,13 +58,9 @@ public class TestSuiteManager extends Stage
             {
                 testSuitesListView.getItems().add(name);
                 nameTextField.clear();
-                
-                        
-                        
-                        
                        
                 // Define the target directory path
-                String targetDir = (System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites\\"+ name);
+                String targetDir = (basePath + name);
                 
                 // Create the File object for the target directory
                 folder = new File(targetDir);
@@ -73,18 +69,8 @@ public class TestSuiteManager extends Stage
                 if (!folder.exists())
                 {
                     // Create the folder and any intermediate directories if necessary
-                    if (folder.mkdirs()) 
-                    {
-                        System.out.println("Folder '" + name + "' created at " + targetDir);
-                    } else 
-                    {
-                        System.out.println("Failed to create folder '" + name + "' at " + targetDir);
-                    }
-                } else 
-                {
-                    System.out.println("Folder '" + name + "' already exists at " + targetDir);
+                    folder.mkdirs();
                 }
-        
             }
         });
 
@@ -92,14 +78,10 @@ public class TestSuiteManager extends Stage
         {
             int index = testSuitesListView.getSelectionModel().getSelectedIndex();
             String newName = nameTextField.getText().trim();
-        
             if (index != -1 && !newName.isEmpty()) 
             {
                 // Get old name
                 String oldName = testSuitesListView.getItems().get(index);
-        
-                // Define base path
-                String basePath = System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites\\";
         
                 // Old folder
                 File oldFolder = new File(basePath + oldName);
@@ -110,24 +92,9 @@ public class TestSuiteManager extends Stage
                 // Attempt rename
                 if (oldFolder.exists()) 
                 {
-                    boolean renamed = oldFolder.renameTo(newFolder);
-        
-                    if (renamed)
-                    {
-                        System.out.println("Folder renamed from '" + oldName + "' to '" + newName + "'");
-                        // Update ListView
-                        testSuitesListView.getItems().set(index, newName);
-                    }
-                    else
-                    {
-                        System.out.println("Failed to rename folder '" + oldName + "'");
-                    }
-                }
-                else 
-                {
-                    System.out.println("Old folder does not exist: " + oldFolder.getAbsolutePath());
-                }
-        
+                    oldFolder.renameTo(newFolder);
+                    testSuitesListView.getItems().set(index, newName);
+                }        
                 nameTextField.clear();
             }
         });
@@ -140,29 +107,14 @@ public class TestSuiteManager extends Stage
             if (index != -1) 
             {
                 String name = testSuitesListView.getItems().get(index);
-        
-                String basePath = System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites\\";
                 File folderToDelete = new File(basePath + name);
         
                 if (folderToDelete.exists()) 
                 {
-                    boolean deleted = deleteFolderRecursively(folderToDelete);
-        
-                    if (deleted)
-                    {
-                        System.out.println("Folder '" + name + "' deleted successfully.");
-                        testSuitesListView.getItems().remove(index);
-                    }
-                    else 
-                    {
-                        System.out.println("Failed to delete folder '" + name + "'.");
-                    }
-                }
-                else 
-                {
-                    System.out.println("Folder does not exist: " + folderToDelete.getAbsolutePath());
+                    deleteFolderRecursively(folderToDelete);
                     testSuitesListView.getItems().remove(index);
                 }
+                else {testSuitesListView.getItems().remove(index);}
             }
         });
 
