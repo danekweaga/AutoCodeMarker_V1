@@ -38,7 +38,7 @@ import java.util.Optional;
 public class TestCaseManager extends Stage
 {
     // Instance data
-    private TestSuiteFileService fileService;
+    private final Path baseTestSuitesFolder;
     private ComboBox<String> suiteComboBox;
     private ListView<TestCase> testCaseListView;
     private ObservableList<TestCase> testCaseObservableList;
@@ -53,8 +53,7 @@ public class TestCaseManager extends Stage
     {
         // Base folder: <UserHome>/Auto Code Marker/Test Suites
         String userHome = System.getProperty("user.home");
-        Path baseFolder = Paths.get(userHome, "Auto Code Marker", "Test Suites");
-        fileService = new TestSuiteFileService(baseFolder);
+        baseTestSuitesFolder = Paths.get(userHome, "Auto Code Marker", "Test Suites");
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
@@ -135,7 +134,7 @@ public class TestCaseManager extends Stage
     {
         try
         {
-            List<String> names = fileService.listTestSuiteNames();
+            List<String> names = listTestSuiteNames();
             suiteComboBox.getItems().clear();
             suiteComboBox.getItems().addAll(names);
         }
@@ -163,7 +162,7 @@ public class TestCaseManager extends Stage
 
         try
         {
-            List<TestCase> cases = fileService.loadTestCases(suiteName);
+            List<TestCase> cases = loadTestCases(suiteName);
 
             // Fill the observable list with a copy of what is on disk.
             // This list is the "temporary copy" the user edits.
@@ -275,7 +274,7 @@ public class TestCaseManager extends Stage
             List<TestCase> snapshot = new ArrayList<>(testCaseObservableList);
 
             // This call overwrites the on-disk test case files with our working copy.
-            fileService.saveTestCases(currentSuiteName, snapshot);
+            saveTestCases(currentSuiteName, snapshot);
 
             showInfo("Test cases saved successfully.");
         }
@@ -388,28 +387,6 @@ public class TestCaseManager extends Stage
         Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
         alert.showAndWait();
     }
-}
-
-/***************************************************************************************
- * @title   The TestSuiteFileService class.
- *
- * @author  Frances Felicidario
- * @version V1.0
- ***************************************************************************************/
-class TestSuiteFileService
-{
-    // Instance data
-    private final Path baseTestSuitesFolder;
-
-    /***********************************************************************************
-     * Constructs the service using the given base "Test Suites" folder.
-     *
-     * @param baseTestSuitesFolder the folder containing all test suite folders
-     ***********************************************************************************/
-    public TestSuiteFileService(Path baseTestSuitesFolder)
-    {
-        this.baseTestSuitesFolder = baseTestSuitesFolder;
-    }
 
     /***********************************************************************************
      * Returns the base "Test Suites" folder path.
@@ -427,7 +404,7 @@ class TestSuiteFileService
      * @return a list of test suite folder names
      * @throws IOException if the folder cannot be read
      ***********************************************************************************/
-    public List<String> listTestSuiteNames() throws IOException
+    private List<String> listTestSuiteNames() throws IOException
     {
         List<String> names = new ArrayList<>();
 
@@ -462,7 +439,7 @@ class TestSuiteFileService
      * @return a list of TestCase objects
      * @throws IOException if files cannot be read
      ***********************************************************************************/
-    public List<TestCase> loadTestCases(String suiteName) throws IOException
+    private List<TestCase> loadTestCases(String suiteName) throws IOException
     {
         List<TestCase> cases = new ArrayList<>();
 
@@ -537,7 +514,7 @@ class TestSuiteFileService
      * @param testCases the list of TestCase objects to save
      * @throws IOException if writing to disk fails
      ***********************************************************************************/
-    public void saveTestCases(String suiteName, List<TestCase> testCases) throws IOException
+    private void saveTestCases(String suiteName, List<TestCase> testCases) throws IOException
     {
         if (suiteName == null || suiteName.isEmpty())
         {
