@@ -124,7 +124,6 @@ public class TestCaseManager extends Stage
         Scene scene = new Scene(root, 700, 400);
         this.setTitle("Test Case Manager");
         this.setScene(scene);
-        this.show();
     }
 
     /***********************************************************************************
