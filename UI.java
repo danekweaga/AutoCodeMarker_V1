@@ -27,7 +27,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 /***************************************************************************************
- * Write a description of class UI here.
+ * The GUI in which the User interacts with to set Folder paths, Set Test Suites and Test Cases, etc
  *
  * @author Alamin Adeleke, Chuckwunonso Ekweaga, Aniekan Ekarika, Frances Felicidario
  * @version 1
@@ -64,7 +64,7 @@ public class UI extends Application
 
         // ---- Title Label ----
         Label titleLabel = new Label("Auto Code Marker");
-        titleLabel.setFont(Font.font("Consolas", 38));
+        titleLabel.setFont(Font.font("Consolas", 42));
         titleLabel.setTextFill(Color.web("#00BFFF")); // blue
         titleLabel.setStyle("-fx-font-weight: bold;");
         titleLabel.setMaxWidth(Double.MAX_VALUE);
@@ -74,7 +74,7 @@ public class UI extends Application
         Label submissionsLabel = new Label("Select Submission Folder:");
         submissionsPathField = new TextField();
         submissionsPathField.setEditable(false);
-        submissionsPathField.setPrefWidth(350);
+        submissionsPathField.setPrefWidth(185);
 
         Button chooseSubmissionsButton = new Button("Browse");
         chooseSubmissionsButton.setOnAction(e -> 
@@ -89,18 +89,19 @@ public class UI extends Application
             }
         });
 
-        HBox submissionsBox = new HBox(10, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
+        HBox submissionsBox = new HBox(11, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
         submissionsBox.setAlignment(Pos.CENTER_LEFT);
 
         // --- Test Suite Dropdown Section ---
 
-        Label testSuiteLabel = new Label("Choose Test Suite");
+        Label testSuiteLabel = new Label("Choose Test Suite:            ");
         
         // ComboBox for listing test suite folders
         testSuiteDropdown = new ComboBox<>();
         testSuiteDropdown.setPromptText("Select a test suite");
+        testSuiteDropdown.setPrefWidth(250);
         
-        HBox testSuitBox = new HBox(10, testSuiteLabel, testSuiteDropdown);
+        HBox testSuitBox = new HBox(9, testSuiteLabel, testSuiteDropdown);
         testSuitBox.setAlignment(Pos.CENTER_LEFT);
         
         // Folder where test suite names are stored
@@ -112,7 +113,8 @@ public class UI extends Application
             File[] folders = testSuitesDir.listFiles(File::isDirectory);
             if (folders != null) 
             {
-                for (File f : folders) {
+                for (File f : folders) 
+                {
                     testSuiteDropdown.getItems().add(f.getName());
                 }
             }
@@ -120,7 +122,8 @@ public class UI extends Application
         
         
         
-        testSuiteDropdown.setOnAction(e -> {
+        testSuiteDropdown.setOnAction(e -> 
+        {
             selectedTestSuite.set(testSuiteDropdown.getValue());
             System.out.println("Selected Test Suite: " + selectedTestSuite.get());
         });
@@ -131,13 +134,13 @@ public class UI extends Application
         StackPane manageTestCasesButton = createRectButton("Manage TestCases", Color.LIGHTBLUE, this::manageTestCases);
         StackPane manageTestSuiteButton = createRectButton("Manage TestSuite", Color.LIGHTBLUE, this::manageTestSuite);
 
-        HBox manageBox = new HBox(15, manageTestCasesButton, manageTestSuiteButton);
-        manageBox.setAlignment(Pos.CENTER_LEFT);
+        HBox manageBox = new HBox(20, manageTestCasesButton, manageTestSuiteButton);
+        manageBox.setAlignment(Pos.CENTER);
 
-        // ---- Run Test Cases button (stylized rectangle) ----
+        //Run Test Cases button (stylized rectangle)
         StackPane runTestCasesButton = createRectButton("Run Test Cases", Color.LIGHTGREEN, this::runTestCases);
 
-        // ---- Layout (mostly top-to-bottom) ----
+        //Layout (mostly top-to-bottom)
         VBox root = new VBox(22);
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.TOP_LEFT);
@@ -150,7 +153,7 @@ public class UI extends Application
                 
         );
 
-        Scene scene = new Scene(root, 600, 300);
+        Scene scene = new Scene(root, 450, 300);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
@@ -233,20 +236,16 @@ public class UI extends Application
     }
 
     
-    
-    // ----------------- Empty Handlers (to implement later) ----------------
-
+    // Button Methods to interact with the coordinator Class
     private void manageTestSuite() 
     {
         c.manageTestSuites();
         chosenSuite = selectedTestSuite.get();
     }
-
     private void manageTestCases() 
     {
         c.manageTestCases();
     }
-
     private void runTestCases() 
     {
         c.runTests(submissionsPathField.getText(),testSuiteDropdown.getValue());

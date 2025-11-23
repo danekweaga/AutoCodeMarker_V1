@@ -1,9 +1,9 @@
-/****************************************************
- * Write a description of class TestCase here.
+/****************************************************************************
+ * Class to help user manage test Suites in folders from the app instead
  *
- * @author (your name)
- * @version (a version number or a date)
- ***************************************************/
+ * @author Aalmin Adeleke, Chuckwunonso Ekweaga, Aniekan Ekarika, Frances Felicidario
+ * @version 11/23/2025
+ ***************************************************************************/
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;

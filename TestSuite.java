@@ -1,7 +1,4 @@
 import java.util.ArrayList;
- 
-
-
 /**
  * Test Suite containing multiple TestCase objects. This stores and manages set of test cases belonging to this suite.
  *
@@ -11,7 +8,6 @@ import java.util.ArrayList;
 public class TestSuite 
 {
     public ArrayList<TestCase> testSuite;
-    
     public TestSuite()
     {
         testSuite = new ArrayList<TestCase>();
