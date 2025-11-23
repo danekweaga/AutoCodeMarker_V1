@@ -249,6 +249,6 @@ public class UI extends Application
 
     private void runTestCases() 
     {
-        //c.runTests();
+        //c.runTests(submissionsPathField.getText(),testSuiteDropdown.getValue());
     }
 }
