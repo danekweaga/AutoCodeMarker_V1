@@ -40,7 +40,7 @@ public class OutputViewerTest extends Application
         output.addResult(new Result("Extra Case 5", "FAIL"));
 
         // Show the OutputViewer window
-        OutputViewer viewer = new OutputViewer(output);
+        OutputViewer viewer = new OutputViewer(outputs);
         viewer.show();
     }
 }
