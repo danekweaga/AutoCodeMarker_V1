@@ -17,8 +17,9 @@ public class Output
     /***********************************************************************************
      * Default constructor initializing storage for Result objects.
      ***********************************************************************************/
-    public Output()
+    public Output(String submissionName)
     {
+        this.submissionName = submissionName;
         results = new ArrayList<>();
     }
 

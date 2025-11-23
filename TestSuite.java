@@ -1,3 +1,4 @@
+import java.util.ArrayList;
  
 
 
@@ -9,6 +10,16 @@
  */
 public class TestSuite 
 {
+    public ArrayList<TestCase> testSuite;
     
+    public TestSuite()
+    {
+        testSuite = new ArrayList<TestCase>();
+    }
+    
+    public void add(TestCase tc)
+    {
+        testSuite.add(tc);
+    }
 }
 

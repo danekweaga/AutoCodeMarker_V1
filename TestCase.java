@@ -107,15 +107,4 @@ public class TestCase
     {
         this.index = index;
     }
-
-    /***********************************************************************************
-     * Returns a user-friendly string representation for display.
-     *
-     * @return formatted string "<index>: <name>"
-     ***********************************************************************************/
-    @Override
-    public String toString()
-    {
-        return index + ": " + name;
-    }
 }
