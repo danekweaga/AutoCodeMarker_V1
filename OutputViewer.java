@@ -25,27 +25,22 @@ import java.util.ArrayList;
  ***************************************************************************************/
 public class OutputViewer extends Stage
 {
-    private static final int RESULTS_PER_PAGE = 4;
-
-    private ArrayList<Output> outputs; // Changed from single Output to ArrayList
-    private int currentOutputIndex; // Tracks which output we're viewing
-    private int currentPageIndex;
+    private ArrayList<Output> outputs;
+    private int currentOutputIndex;
 
     private VBox resultsBox;
     private Label submissionNameLabel;
-    private Label pageLabel;
-    private Button prevOutputButton; // For navigating between outputs
-    private Button nextOutputButton; // For navigating between outputs
-    private Button prevPageButton; // For navigating pages within current output
-    private Button nextPageButton; // For navigating pages within current output
-    private ScrollPane scrollPane; // Added scroll pane
+    private Label outputCounterLabel;
+    private Button prevOutputButton;
+    private Button nextOutputButton;
+    private ScrollPane scrollPane;
 
     /***********************************************************************************
      * Default constructor creating an empty OutputViewer window.
      ***********************************************************************************/
     public OutputViewer()
     {
-        this(new ArrayList<>()); // Initialize with empty list
+        this(new ArrayList<>());
     }
     
     /***********************************************************************************
@@ -57,7 +52,6 @@ public class OutputViewer extends Stage
     {
         this.outputs = outputs;
         currentOutputIndex = 0;
-        currentPageIndex = 0;
         initializeUI();
         updateDisplay();
     }
@@ -71,7 +65,6 @@ public class OutputViewer extends Stage
     {
         this.outputs = outputs;
         currentOutputIndex = 0;
-        currentPageIndex = 0;
         updateDisplay();
     }
 
@@ -98,36 +91,33 @@ public class OutputViewer extends Stage
 
         BorderPane root = new BorderPane();
 
-        // Center area with scrollable results
+        // Center area with scrollable results - ALL results displayed at once
         resultsBox = new VBox(10);
         resultsBox.setPadding(new Insets(15));
         
         scrollPane = new ScrollPane(resultsBox);
         scrollPane.setFitToWidth(true);
-        scrollPane.setPrefHeight(250);
+        scrollPane.setPrefHeight(350); // Increased height to show more results
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         root.setCenter(scrollPane);
 
-        // Bottom bar with submission name, page info, and navigation buttons
+        // Bottom bar with submission name, output counter, and navigation buttons
         submissionNameLabel = new Label();
         submissionNameLabel.setFont(Font.font("Consolas", 14));
 
-        pageLabel = new Label("Output 0 of 0 | Page 0 of 0");
-        pageLabel.setFont(Font.font("Consolas", 14));
+        outputCounterLabel = new Label("Output 0 of 0");
+        outputCounterLabel.setFont(Font.font("Consolas", 14));
 
         // Output navigation buttons (between different outputs)
-        prevOutputButton = new Button("<< Output");
-        nextOutputButton = new Button("Output >>");
-        
-        // Page navigation buttons (within current output)
-        prevPageButton = new Button("< Page");
-        nextPageButton = new Button("Page >");
+        prevOutputButton = new Button("<< Previous Output");
+        nextOutputButton = new Button("Next Output >>");
 
         prevOutputButton.setOnAction(e ->
         {
             if (currentOutputIndex > 0)
             {
                 currentOutputIndex--;
-                currentPageIndex = 0;
                 updateDisplay();
             }
         });
@@ -137,26 +127,7 @@ public class OutputViewer extends Stage
             if (hasNextOutput())
             {
                 currentOutputIndex++;
-                currentPageIndex = 0;
                 updateDisplay();
-            }
-        });
-
-        prevPageButton.setOnAction(e ->
-        {
-            if (currentPageIndex > 0)
-            {
-                currentPageIndex--;
-                updatePage();
-            }
-        });
-
-        nextPageButton.setOnAction(e ->
-        {
-            if (hasNextPage())
-            {
-                currentPageIndex++;
-                updatePage();
             }
         });
 
@@ -170,47 +141,43 @@ public class OutputViewer extends Stage
         bottomBar.getChildren().addAll(
                 submissionNameLabel,
                 spacer,
-                pageLabel,
+                outputCounterLabel,
                 prevOutputButton,
-                nextOutputButton,
-                prevPageButton,
-                nextPageButton
+                nextOutputButton
         );
 
         root.setBottom(bottomBar);
 
-        Scene scene = new Scene(root, 700, 400); // Increased width for more buttons
+        Scene scene = new Scene(root, 600, 500); // Increased height for better viewing
         setScene(scene);
     }
 
     /***********************************************************************************
-     * Updates the entire display including output navigation and current page.
+     * Updates the entire display including current output content and navigation.
      ***********************************************************************************/
     private void updateDisplay()
     {
-        updatePage();
+        updateResults();
         updateNavigation();
     }
 
     /***********************************************************************************
-     * Updates the visible page: testcase/result boxes, submission label,
-     * page indicator, and page navigation button states.
+     * Updates the results display with all test cases for the current output.
      ***********************************************************************************/
-    private void updatePage()
+    private void updateResults()
     {
         resultsBox.getChildren().clear();
 
         if (outputs == null || outputs.isEmpty()) {
             // Show empty state
             submissionNameLabel.setText("No outputs available");
-            pageLabel.setText("Output 0 of 0 | Page 0 of 0");
-            prevPageButton.setDisable(true);
-            nextPageButton.setDisable(true);
+            outputCounterLabel.setText("Output 0 of 0");
             
-            // Add empty rows
-            for (int i = 0; i < RESULTS_PER_PAGE; i++) {
-                resultsBox.getChildren().add(createEmptyRow());
-            }
+            // Show message for empty state
+            Label emptyLabel = new Label("No test results to display");
+            emptyLabel.setFont(Font.font("Consolas", 16));
+            emptyLabel.setTextFill(Color.GRAY);
+            resultsBox.getChildren().add(emptyLabel);
             return;
         }
 
@@ -220,54 +187,27 @@ public class OutputViewer extends Stage
                         ? currentOutput.getResults()
                         : new ArrayList<>();
 
-        int totalResults = results.size();
-        int totalPages = (totalResults == 0)
-                ? 0
-                : ((totalResults - 1) / RESULTS_PER_PAGE) + 1;
-
-        if (currentPageIndex >= totalPages && totalPages > 0)
+        // Display ALL results at once in the scrollable area
+        for (Result result : results)
         {
-            currentPageIndex = totalPages - 1;
+            resultsBox.getChildren().add(createResultRow(result));
         }
 
-        int startIndex = currentPageIndex * RESULTS_PER_PAGE;
-        int endIndex = Math.min(startIndex + RESULTS_PER_PAGE, totalResults);
-
-        // Fill with real results
-        for (int i = startIndex; i < endIndex; i++)
-        {
-            Result r = results.get(i);
-            resultsBox.getChildren().add(createResultRow(r));
+        // If no results, show empty message
+        if (results.isEmpty()) {
+            Label noResultsLabel = new Label("No test cases for this submission");
+            noResultsLabel.setFont(Font.font("Consolas", 14));
+            noResultsLabel.setTextFill(Color.GRAY);
+            resultsBox.getChildren().add(noResultsLabel);
         }
 
-        // If fewer than 4 results on this page, add empty placeholders
-        int placeholders = RESULTS_PER_PAGE - (endIndex - startIndex);
-        for (int i = 0; i < placeholders; i++)
-        {
-            resultsBox.getChildren().add(createEmptyRow());
-        }
-
-        // Submission name at bottom-left
+        // Update submission name and counter
         String submissionNameText =
                 (currentOutput != null && currentOutput.getSubmissionName() != null)
                         ? currentOutput.getSubmissionName()
                         : "Submission Name";
         submissionNameLabel.setText(submissionNameText);
-
-        // Page indicator X of Y (pages) and output indicator
-        if (totalPages == 0)
-        {
-            pageLabel.setText("Output " + (currentOutputIndex + 1) + " of " + outputs.size() + " | Page 0 of 0");
-        }
-        else
-        {
-            pageLabel.setText("Output " + (currentOutputIndex + 1) + " of " + outputs.size() + 
-                             " | Page " + (currentPageIndex + 1) + " of " + totalPages);
-        }
-
-        // Enable/disable page navigation arrows
-        prevPageButton.setDisable(currentPageIndex <= 0);
-        nextPageButton.setDisable(!hasNextPage());
+        outputCounterLabel.setText("Output " + (currentOutputIndex + 1) + " of " + outputs.size());
     }
 
     /***********************************************************************************
@@ -308,61 +248,22 @@ public class OutputViewer extends Stage
 
         Label resultLabel = new Label(resultText);
         resultLabel.setFont(Font.font("Consolas", 14));
-        resultLabel.setTextFill(Color.DIMGRAY);
+        
+        // Color code results: GREEN for PASS, RED for FAIL, gray for others
+        if ("PASS".equalsIgnoreCase(resultText)) {
+            resultLabel.setTextFill(Color.GREEN);
+        } else if ("FAIL".equalsIgnoreCase(resultText)) {
+            resultLabel.setTextFill(Color.RED);
+        } else {
+            resultLabel.setTextFill(Color.DIMGRAY);
+        }
 
         VBox box = new VBox(4, nameLabel, resultLabel);
         box.setPadding(new Insets(10));
-        box.setStyle("-fx-background-color: #D3D3D3;");
+        box.setStyle("-fx-background-color: #F5F5F5; -fx-border-color: #E0E0E0; -fx-border-width: 1;");
+        box.setMaxWidth(Double.MAX_VALUE);
 
         return box;
-    }
-
-    /***********************************************************************************
-     * Creates an empty placeholder row to keep the layout consistent
-     * when there are fewer than 4 results on the current page.
-     *
-     * @return a VBox representing an empty row
-     ***********************************************************************************/
-    private VBox createEmptyRow()
-    {
-        Label nameLabel = new Label("Testcase Name");
-        nameLabel.setFont(Font.font("Consolas", 16));
-        nameLabel.setTextFill(Color.GRAY);
-
-        Label resultLabel = new Label("result");
-        resultLabel.setFont(Font.font("Consolas", 14));
-        resultLabel.setTextFill(Color.LIGHTGRAY);
-
-        VBox box = new VBox(4, nameLabel, resultLabel);
-        box.setPadding(new Insets(10));
-        box.setStyle("-fx-background-color: #D3D3D3;");
-
-        return box;
-    }
-
-    /***********************************************************************************
-     * Determines whether there is another page of results after the current one
-     * within the current output.
-     *
-     * @return true if another page exists; false otherwise
-     ***********************************************************************************/
-    private boolean hasNextPage()
-    {
-        if (outputs == null || outputs.isEmpty() || currentOutputIndex >= outputs.size()) {
-            return false;
-        }
-
-        Output currentOutput = outputs.get(currentOutputIndex);
-        if (currentOutput == null || currentOutput.getResults() == null) {
-            return false;
-        }
-
-        int totalResults = currentOutput.getResults().size();
-        int totalPages = (totalResults == 0)
-                ? 0
-                : ((totalResults - 1) / RESULTS_PER_PAGE) + 1;
-
-        return currentPageIndex < totalPages - 1;
     }
 
     /***********************************************************************************
