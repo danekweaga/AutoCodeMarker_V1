@@ -1,9 +1,8 @@
 /***************************************************************************************
  * @title   The TestCase class.
  *
- * @author  Alamin Adeleke, Chukwunonso Ekweaga,
- *          Aniekan Ekarika, Frances Felicidario
- * @version Final Version
+ * @author  Frances Felicidario
+ * @version V1.0
  ***************************************************************************************/
 public class TestCase
 {
