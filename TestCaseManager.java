@@ -521,3 +521,26 @@ public class TestCaseManager extends Stage
             {
                 Files.deleteIfExists(file);
             }
+        }
+
+        // Rewrite all files based on the current list
+        for (TestCase tc : testCases)
+        {
+            String baseName = (tc.getName() != null) ? tc.getName().trim() : "";
+            if (baseName.isEmpty())
+            {
+                baseName = "tc";
+            }
+
+            // Sanitize name for filesystem
+            String safeName = baseName.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+            Path file = suiteFolder.resolve(safeName + ".txt");
+            List<String> lines = new ArrayList<>();
+            lines.add(tc.getInput() != null ? tc.getInput() : "");
+            lines.add(tc.getOutput() != null ? tc.getOutput() : "");
+
+            Files.write(file, lines);
+        }
+    }
+}
