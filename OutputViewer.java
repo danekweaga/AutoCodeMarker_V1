@@ -8,6 +8,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.text.Font;
@@ -26,46 +27,66 @@ public class OutputViewer extends Stage
 {
     private static final int RESULTS_PER_PAGE = 4;
 
-    private Output output;
+    private ArrayList<Output> outputs; // Changed from single Output to ArrayList
+    private int currentOutputIndex; // Tracks which output we're viewing
     private int currentPageIndex;
 
     private VBox resultsBox;
     private Label submissionNameLabel;
     private Label pageLabel;
-    private Button prevButton;
-    private Button nextButton;
+    private Button prevOutputButton; // For navigating between outputs
+    private Button nextOutputButton; // For navigating between outputs
+    private Button prevPageButton; // For navigating pages within current output
+    private Button nextPageButton; // For navigating pages within current output
+    private ScrollPane scrollPane; // Added scroll pane
 
     /***********************************************************************************
      * Default constructor creating an empty OutputViewer window.
      ***********************************************************************************/
     public OutputViewer()
     {
-        this(null);
+        this(new ArrayList<>()); // Initialize with empty list
     }
     
     /***********************************************************************************
-     * Constructor that initializes the viewer for a given submission output.
+     * Constructor that initializes the viewer for a given list of outputs.
      *
-     * @param output the Output object containing the submission name and test results
+     * @param outputs the ArrayList of Output objects containing submission names and test results
      ***********************************************************************************/
-    public OutputViewer(Output output)
+    public OutputViewer(ArrayList<Output> outputs)
     {
-        this.output = output;
+        this.outputs = outputs;
+        currentOutputIndex = 0;
         currentPageIndex = 0;
         initializeUI();
-        updatePage();
+        updateDisplay();
     }
 
     /***********************************************************************************
      * Sets the Output data to display and refreshes the view.
      *
-     * @param output the Output to show in this viewer
+     * @param outputs the ArrayList of Outputs to show in this viewer
      ***********************************************************************************/
-    public void setOutput(Output output)
+    public void setOutputs(ArrayList<Output> outputs)
     {
-        this.output = output;
+        this.outputs = outputs;
+        currentOutputIndex = 0;
         currentPageIndex = 0;
-        updatePage();
+        updateDisplay();
+    }
+
+    /***********************************************************************************
+     * Adds a single Output to the list and refreshes the view.
+     *
+     * @param output the Output to add
+     ***********************************************************************************/
+    public void addOutput(Output output)
+    {
+        if (outputs == null) {
+            outputs = new ArrayList<>();
+        }
+        outputs.add(output);
+        updateDisplay();
     }
 
     /***********************************************************************************
@@ -77,22 +98,51 @@ public class OutputViewer extends Stage
 
         BorderPane root = new BorderPane();
 
-        // Center area with 4 result slots
+        // Center area with scrollable results
         resultsBox = new VBox(10);
         resultsBox.setPadding(new Insets(15));
-        root.setCenter(resultsBox);
+        
+        scrollPane = new ScrollPane(resultsBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(250);
+        root.setCenter(scrollPane);
 
-        // Bottom bar with submission name, page info, and arrows
+        // Bottom bar with submission name, page info, and navigation buttons
         submissionNameLabel = new Label();
         submissionNameLabel.setFont(Font.font("Consolas", 14));
 
-        pageLabel = new Label("0 of 0");
+        pageLabel = new Label("Output 0 of 0 | Page 0 of 0");
         pageLabel.setFont(Font.font("Consolas", 14));
 
-        prevButton = new Button("<");
-        nextButton = new Button(">");
+        // Output navigation buttons (between different outputs)
+        prevOutputButton = new Button("<< Output");
+        nextOutputButton = new Button("Output >>");
+        
+        // Page navigation buttons (within current output)
+        prevPageButton = new Button("< Page");
+        nextPageButton = new Button("Page >");
 
-        prevButton.setOnAction(e ->
+        prevOutputButton.setOnAction(e ->
+        {
+            if (currentOutputIndex > 0)
+            {
+                currentOutputIndex--;
+                currentPageIndex = 0;
+                updateDisplay();
+            }
+        });
+
+        nextOutputButton.setOnAction(e ->
+        {
+            if (hasNextOutput())
+            {
+                currentOutputIndex++;
+                currentPageIndex = 0;
+                updateDisplay();
+            }
+        });
+
+        prevPageButton.setOnAction(e ->
         {
             if (currentPageIndex > 0)
             {
@@ -101,7 +151,7 @@ public class OutputViewer extends Stage
             }
         });
 
-        nextButton.setOnAction(e ->
+        nextPageButton.setOnAction(e ->
         {
             if (hasNextPage())
             {
@@ -121,27 +171,53 @@ public class OutputViewer extends Stage
                 submissionNameLabel,
                 spacer,
                 pageLabel,
-                prevButton,
-                nextButton
+                prevOutputButton,
+                nextOutputButton,
+                prevPageButton,
+                nextPageButton
         );
 
         root.setBottom(bottomBar);
 
-        Scene scene = new Scene(root, 600, 350);
+        Scene scene = new Scene(root, 700, 400); // Increased width for more buttons
         setScene(scene);
     }
 
     /***********************************************************************************
+     * Updates the entire display including output navigation and current page.
+     ***********************************************************************************/
+    private void updateDisplay()
+    {
+        updatePage();
+        updateNavigation();
+    }
+
+    /***********************************************************************************
      * Updates the visible page: testcase/result boxes, submission label,
-     * page indicator, and arrow button states.
+     * page indicator, and page navigation button states.
      ***********************************************************************************/
     private void updatePage()
     {
         resultsBox.getChildren().clear();
 
+        if (outputs == null || outputs.isEmpty()) {
+            // Show empty state
+            submissionNameLabel.setText("No outputs available");
+            pageLabel.setText("Output 0 of 0 | Page 0 of 0");
+            prevPageButton.setDisable(true);
+            nextPageButton.setDisable(true);
+            
+            // Add empty rows
+            for (int i = 0; i < RESULTS_PER_PAGE; i++) {
+                resultsBox.getChildren().add(createEmptyRow());
+            }
+            return;
+        }
+
+        Output currentOutput = outputs.get(currentOutputIndex);
         ArrayList<Result> results =
-                (output != null && output.getResults() != null)
-                        ? output.getResults()
+                (currentOutput != null && currentOutput.getResults() != null)
+                        ? currentOutput.getResults()
                         : new ArrayList<>();
 
         int totalResults = results.size();
@@ -173,24 +249,40 @@ public class OutputViewer extends Stage
 
         // Submission name at bottom-left
         String submissionNameText =
-                (output != null && output.getSubmissionName() != null)
-                        ? output.getSubmissionName()
+                (currentOutput != null && currentOutput.getSubmissionName() != null)
+                        ? currentOutput.getSubmissionName()
                         : "Submission Name";
         submissionNameLabel.setText(submissionNameText);
 
-        // Page indicator X of Y (pages)
+        // Page indicator X of Y (pages) and output indicator
         if (totalPages == 0)
         {
-            pageLabel.setText("0 of 0");
+            pageLabel.setText("Output " + (currentOutputIndex + 1) + " of " + outputs.size() + " | Page 0 of 0");
         }
         else
         {
-            pageLabel.setText((currentPageIndex + 1) + " of " + totalPages);
+            pageLabel.setText("Output " + (currentOutputIndex + 1) + " of " + outputs.size() + 
+                             " | Page " + (currentPageIndex + 1) + " of " + totalPages);
         }
 
-        // Enable/disable arrows
-        prevButton.setDisable(currentPageIndex <= 0);
-        nextButton.setDisable(!hasNextPage());
+        // Enable/disable page navigation arrows
+        prevPageButton.setDisable(currentPageIndex <= 0);
+        nextPageButton.setDisable(!hasNextPage());
+    }
+
+    /***********************************************************************************
+     * Updates the output navigation button states.
+     ***********************************************************************************/
+    private void updateNavigation()
+    {
+        if (outputs == null || outputs.isEmpty()) {
+            prevOutputButton.setDisable(true);
+            nextOutputButton.setDisable(true);
+            return;
+        }
+
+        prevOutputButton.setDisable(currentOutputIndex <= 0);
+        nextOutputButton.setDisable(!hasNextOutput());
     }
 
     /***********************************************************************************
@@ -249,22 +341,41 @@ public class OutputViewer extends Stage
     }
 
     /***********************************************************************************
-     * Determines whether there is another page of results after the current one.
+     * Determines whether there is another page of results after the current one
+     * within the current output.
      *
      * @return true if another page exists; false otherwise
      ***********************************************************************************/
     private boolean hasNextPage()
     {
-        if (output == null || output.getResults() == null)
-        {
+        if (outputs == null || outputs.isEmpty() || currentOutputIndex >= outputs.size()) {
             return false;
         }
 
-        int totalResults = output.getResults().size();
+        Output currentOutput = outputs.get(currentOutputIndex);
+        if (currentOutput == null || currentOutput.getResults() == null) {
+            return false;
+        }
+
+        int totalResults = currentOutput.getResults().size();
         int totalPages = (totalResults == 0)
                 ? 0
                 : ((totalResults - 1) / RESULTS_PER_PAGE) + 1;
 
         return currentPageIndex < totalPages - 1;
+    }
+
+    /***********************************************************************************
+     * Determines whether there is another output after the current one.
+     *
+     * @return true if another output exists; false otherwise
+     ***********************************************************************************/
+    private boolean hasNextOutput()
+    {
+        if (outputs == null || outputs.isEmpty()) {
+            return false;
+        }
+
+        return currentOutputIndex < outputs.size() - 1;
     }
 }
