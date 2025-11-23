@@ -1,5 +1,3 @@
- 
-
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.DirectoryChooser;
@@ -46,6 +44,7 @@ public class UI extends Application
 
     private TextField submissionsPathField;
     private TextField testCasePathField;
+    ComboBox<String> testSuiteDropdown;
     
     public static void main(String[] args)
     {
@@ -83,7 +82,8 @@ public class UI extends Application
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Select Submission Folder");
             File folder = directoryChooser.showDialog(primaryStage);
-            if (folder != null) {
+            if (folder != null) 
+            {
                 submissionsFolder = folder.getAbsolutePath();
                 submissionsPathField.setText(submissionsFolder);
             }
@@ -97,7 +97,7 @@ public class UI extends Application
         Label testSuiteLabel = new Label("Choose Test Suite");
         
         // ComboBox for listing test suite folders
-        ComboBox<String> testSuiteDropdown = new ComboBox<>();
+        testSuiteDropdown = new ComboBox<>();
         testSuiteDropdown.setPromptText("Select a test suite");
         
         HBox testSuitBox = new HBox(10, testSuiteLabel, testSuiteDropdown);
@@ -124,7 +124,8 @@ public class UI extends Application
             selectedTestSuite.set(testSuiteDropdown.getValue());
             System.out.println("Selected Test Suite: " + selectedTestSuite.get());
         });
-
+        testSuiteDropdown.setOnShowing(e -> refreshTestSuites());
+        refreshTestSuites();
 
         // ---- Manage TestCases & Manage TestSuite (stylized rectangles) ----
         StackPane manageTestCasesButton = createRectButton("Manage TestCases", Color.LIGHTBLUE, this::manageTestCases);
@@ -216,6 +217,21 @@ public class UI extends Application
             e.printStackTrace();
         }
     }
+    
+    private void refreshTestSuites() 
+    {
+        File dir = new File(System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites\\");
+        File[] folders = dir.listFiles(File::isDirectory);
+    
+        testSuiteDropdown.getItems().clear();
+    
+        if (folders != null) {
+            for (File f : folders) {
+                testSuiteDropdown.getItems().add(f.getName());
+            }
+        }
+    }
+
     
     
     // ----------------- Empty Handlers (to implement later) ----------------
