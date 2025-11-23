@@ -14,34 +14,45 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public class TestSuiteManager extends Stage 
 {
     private final ListView<String> testSuitesListView = new ListView<>();
     private final TextField nameTextField = new TextField();
     String basePath = System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites\\";
+    String tempPath = System.getProperty("user.home") + "\\Auto Code Marker\\Test Suites_temp\\";
     
     //The destination of the test suites
     private File folder;
+    private File tempFolder;
+    
     public TestSuiteManager() 
     {
         Button createBtn = new Button("Create TestSuite");
         Button updateBtn = new Button("Update TestSuite");
         Button deleteBtn = new Button("Delete");
+        Button saveBtn = new Button("Save & Close");
         nameTextField.setPromptText("Enter name");
+        
+        // Create temporary copy of Test Suites folder
+        createTempCopy();
         
         // --- ListView (scrollable) ---
         testSuitesListView.setPrefHeight(200);
-        //To load existing subfolders
-        File baseDir = new File(basePath);
+        // To load existing subfolders from temp directory
+        File tempDir = new File(tempPath);
         // Make sure directory exists
-        if (!baseDir.exists()) 
+        if (!tempDir.exists()) 
         {
-            baseDir.mkdirs();
+            tempDir.mkdirs();
         }
         
-        //Get all subfolders
-        File[] folders = baseDir.listFiles(File::isDirectory);
+        // Get all subfolders from temp directory
+        File[] folders = tempDir.listFiles(File::isDirectory);
         if (folders != null) 
         {
             for (File folder : folders) 
@@ -49,8 +60,6 @@ public class TestSuiteManager extends Stage
                 testSuitesListView.getItems().add(folder.getName());
             }
         }
-        
-        
         
         // --- Button actions ---
         createBtn.setOnAction(e -> 
@@ -61,8 +70,8 @@ public class TestSuiteManager extends Stage
                 testSuitesListView.getItems().add(name);
                 nameTextField.clear();
                        
-                // Define the target directory path
-                String targetDir = (basePath + name);
+                // Define the target directory path in temp folder
+                String targetDir = (tempPath + name);
                 
                 // Create the File object for the target directory
                 folder = new File(targetDir);
@@ -85,11 +94,11 @@ public class TestSuiteManager extends Stage
                 // Get old name
                 String oldName = testSuitesListView.getItems().get(index);
         
-                // Old folder
-                File oldFolder = new File(basePath + oldName);
+                // Old folder in temp directory
+                File oldFolder = new File(tempPath + oldName);
         
-                // New folder
-                File newFolder = new File(basePath + newName);
+                // New folder in temp directory
+                File newFolder = new File(tempPath + newName);
         
                 // Attempt rename
                 if (oldFolder.exists()) 
@@ -101,7 +110,6 @@ public class TestSuiteManager extends Stage
             }
         });
 
-
         deleteBtn.setOnAction(e -> 
         {
             int index = testSuitesListView.getSelectionModel().getSelectedIndex();
@@ -109,7 +117,7 @@ public class TestSuiteManager extends Stage
             if (index != -1) 
             {
                 String name = testSuitesListView.getItems().get(index);
-                File folderToDelete = new File(basePath + name);
+                File folderToDelete = new File(tempPath + name);
         
                 if (folderToDelete.exists()) 
                 {
@@ -119,7 +127,21 @@ public class TestSuiteManager extends Stage
                 else {testSuitesListView.getItems().remove(index);}
             }
         });
+        
+        saveBtn.setOnAction(e -> 
+        {
+            // Replace original folder with temp folder
+            saveChanges();
+            // Close the window
+            close();
+        });
 
+        // Set close request handler to delete temp folder when window is closed
+        setOnCloseRequest(e -> 
+        {
+            // Delete temporary folder without saving changes
+            deleteTempFolder();
+        });
 
         // --- Layout ---
         VBox root = new VBox(10);
@@ -129,13 +151,111 @@ public class TestSuiteManager extends Stage
                 updateBtn,
                 testSuitesListView,
                 nameTextField,
-                deleteBtn
+                deleteBtn,
+                saveBtn
         );
 
         // --- Scene & Stage ---
         Scene scene = new Scene(root, 300, 400);
-        setTitle("test suites");
+        setTitle("Test Suites Manager");
         setScene(scene);    
+    }
+    
+    private void createTempCopy() 
+    {
+        File originalDir = new File(basePath);
+        File tempDir = new File(tempPath);
+        
+        // Delete temp folder if it already exists
+        if (tempDir.exists()) {
+            deleteFolderRecursively(tempDir);
+        }
+        
+        // Create temp directory
+        tempDir.mkdirs();
+        
+        // Copy all contents from original to temp if original exists
+        if (originalDir.exists() && originalDir.isDirectory()) 
+        {
+            File[] files = originalDir.listFiles();
+            if (files != null) 
+            {
+                for (File file : files) 
+                {
+                    try 
+                    {
+                        copyFileOrDirectory(file, new File(tempPath + file.getName()));
+                    } catch (IOException e) {
+                        System.err.println("Error copying file: " + file.getName());
+                    }
+                }
+            }
+        }
+    }
+    
+    private void copyFileOrDirectory(File source, File target) throws IOException 
+    {
+        if (source.isDirectory()) 
+        {
+            if (!target.exists()) 
+            {
+                target.mkdirs();
+            }
+            File[] files = source.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    copyFileOrDirectory(file, new File(target, file.getName()));
+                }
+            }
+        } else 
+        {
+            Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+    
+    private void saveChanges() 
+    {
+        File originalDir = new File(basePath);
+        File tempDir = new File(tempPath);
+        
+        // Delete original folder
+        if (originalDir.exists()) 
+        {
+            deleteFolderRecursively(originalDir);
+        }
+        
+        // Create original directory
+        originalDir.mkdirs();
+        
+        // Copy all contents from temp to original
+        if (tempDir.exists() && tempDir.isDirectory()) 
+        {
+            File[] files = tempDir.listFiles();
+            if (files != null) 
+            {
+                for (File file : files) 
+                {
+                    try 
+                    {
+                        copyFileOrDirectory(file, new File(basePath + file.getName()));
+                    } catch (IOException e) {
+                        System.err.println("Error copying file: " + file.getName());
+                    }
+                }
+            }
+        }
+        
+        // Delete temp folder after saving
+        deleteTempFolder();
+    }
+    
+    private void deleteTempFolder() 
+    {
+        File tempDir = new File(tempPath);
+        if (tempDir.exists()) 
+        {
+            deleteFolderRecursively(tempDir);
+        }
     }
     
     private boolean deleteFolderRecursively(File file) 
@@ -153,6 +273,4 @@ public class TestSuiteManager extends Stage
         }
         return file.delete();
     }
-
 }
-
