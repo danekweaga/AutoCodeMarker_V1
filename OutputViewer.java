@@ -36,14 +36,6 @@ public class OutputViewer extends Stage
     private ScrollPane scrollPane;
 
     /***********************************************************************************
-     * Default constructor creating an empty OutputViewer window.
-     ***********************************************************************************/
-    public OutputViewer()
-    {
-        this(new ArrayList<>());
-    }
-    
-    /***********************************************************************************
      * Constructor that initializes the viewer for a given list of outputs.
      *
      * @param outputs the ArrayList of Output objects containing submission names and test results
@@ -53,32 +45,6 @@ public class OutputViewer extends Stage
         this.outputs = outputs;
         currentOutputIndex = 0;
         initializeUI();
-        updateDisplay();
-    }
-
-    /***********************************************************************************
-     * Sets the Output data to display and refreshes the view.
-     *
-     * @param outputs the ArrayList of Outputs to show in this viewer
-     ***********************************************************************************/
-    public void setOutputs(ArrayList<Output> outputs)
-    {
-        this.outputs = outputs;
-        currentOutputIndex = 0;
-        updateDisplay();
-    }
-
-    /***********************************************************************************
-     * Adds a single Output to the list and refreshes the view.
-     *
-     * @param output the Output to add
-     ***********************************************************************************/
-    public void addOutput(Output output)
-    {
-        if (outputs == null) {
-            outputs = new ArrayList<>();
-        }
-        outputs.add(output);
         updateDisplay();
     }
 
@@ -149,7 +115,7 @@ public class OutputViewer extends Stage
         root.setBottom(bottomBar);
 
         Scene scene = new Scene(root, 600, 500); // Increased height for better viewing
-        setScene(scene);
+        this.setScene(scene);
     }
 
     /***********************************************************************************
