@@ -25,7 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.DirectoryStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +32,7 @@ import java.util.Optional;
  * @title   The TestCaseManager class.
  *
  * @author  Frances Felicidario
- * @version V1.2
+ * @version V1.3
  ***************************************************************************************/
 public class TestCaseManager extends Stage
 {
@@ -147,10 +146,12 @@ public class TestCaseManager extends Stage
     /***********************************************************************************
      * Loads all test cases for the selected suite into the ListView.
      *
-     * IMPORTANT:
-     * - The list loaded from disk is treated as a *temporary working copy*.
-     * - Edits in the UI only change this in-memory copy.
-     * - The original files on disk are only replaced when the user presses "Save".
+     * File format (per test case file):
+     *   line 1: input
+     *   line 2: expected output
+     *
+     * Filename:
+     *   <test-case-name>.txt  (name comes from TestCase.getName()).
      ***********************************************************************************/
     private void loadTestCasesForSuite(String suiteName)
     {
@@ -189,6 +190,7 @@ public class TestCaseManager extends Stage
         if (result.isPresent())
         {
             TestCase tc = result.get();
+            // Keep index only for in-memory ordering; it is *not* saved to disk.
             tc.setIndex(testCaseObservableList.size() + 1);
             testCaseObservableList.add(tc);
         }
@@ -242,7 +244,7 @@ public class TestCaseManager extends Stage
 
         testCaseObservableList.remove(selected);
 
-        // Re-index remaining test cases
+        // Re-index remaining test cases (index is only used in memory)
         int index = 1;
         for (TestCase tc : testCaseObservableList)
         {
@@ -430,10 +432,11 @@ public class TestCaseManager extends Stage
      * Loads all test cases from the given test suite folder.
      *
      * File format:
-     *   line 1: name
-     *   line 2: input
-     *   line 3: expected output
-     *   line 4: index (optional; if missing, index is assigned sequentially)
+     *   line 1: input
+     *   line 2: expected output
+     *
+     * Filename:
+     *   <test-case-name>.txt
      *
      * @param suiteName the name of the test suite folder
      * @return a list of TestCase objects
@@ -458,57 +461,43 @@ public class TestCaseManager extends Stage
         try (DirectoryStream<Path> stream =
                  Files.newDirectoryStream(suiteFolder, "*.txt"))
         {
-            int fallbackIndex = 1;
+            int index = 1;
 
             for (Path file : stream)
             {
                 List<String> lines = Files.readAllLines(file);
 
-                String name =
-                    (lines.size() > 0) ? lines.get(0).trim() : file.getFileName().toString();
                 String input =
-                    (lines.size() > 1) ? lines.get(1) : "";
+                    (lines.size() > 0) ? lines.get(0) : "";
                 String output =
-                    (lines.size() > 2) ? lines.get(2) : "";
+                    (lines.size() > 1) ? lines.get(1) : "";
 
-                int index;
-                if (lines.size() > 3)
-                {
-                    try
-                    {
-                        index = Integer.parseInt(lines.get(3).trim());
-                    }
-                    catch (NumberFormatException e)
-                    {
-                        index = fallbackIndex;
-                    }
-                }
-                else
-                {
-                    index = fallbackIndex;
-                }
+                // Name is always inferred from the filename (no name saved in file)
+                String fileName = file.getFileName().toString();
+                int dot = fileName.lastIndexOf('.');
+                String name = (dot > 0) ? fileName.substring(0, dot) : fileName;
 
                 cases.add(new TestCase(name, input, output, index));
-                fallbackIndex++;
+                index++;
             }
         }
 
-        // Sort by index so list view order is stable
-        cases.sort(Comparator.comparingInt(TestCase::getIndex));
         return cases;
     }
 
     /***********************************************************************************
      * Saves the given list of test cases into the specified test suite folder.
      *
-     * All existing ".txt" files in the folder are removed, and new ones are created as:
-     *   tc1.txt, tc2.txt, ...
+     * Behaviour:
+     *  - All existing ".txt" files in the folder are removed.
+     *  - New files are created as:
+     *        <test-case-name>.txt
      *
      * File format:
-     *   line 1: name
-     *   line 2: input
-     *   line 3: expected output
-     *   line 4: index
+     *   line 1: input
+     *   line 2: expected output
+     *
+     * NOTE: Neither name nor index are written to the file.
      *
      * @param suiteName the test suite folder name
      * @param testCases the list of TestCase objects to save
@@ -532,23 +521,3 @@ public class TestCaseManager extends Stage
             {
                 Files.deleteIfExists(file);
             }
-        }
-
-        // Rewrite all files based on the current list
-        int index = 1;
-        for (TestCase tc : testCases)
-        {
-            tc.setIndex(index);
-
-            Path file = suiteFolder.resolve("tc" + index + ".txt");
-            List<String> lines = new ArrayList<>();
-            lines.add(tc.getName());
-            lines.add(tc.getInput());
-            lines.add(tc.getOutput());
-            lines.add(Integer.toString(tc.getIndex()));
-
-            Files.write(file, lines);
-            index++;
-        }
-    }
-}
