@@ -125,7 +125,6 @@ public class UI extends Application
         testSuiteDropdown.setOnAction(e -> 
         {
             selectedTestSuite.set(testSuiteDropdown.getValue());
-            System.out.println("Selected Test Suite: " + selectedTestSuite.get());
         });
         testSuiteDropdown.setOnShowing(e -> refreshTestSuites());
         refreshTestSuites();
