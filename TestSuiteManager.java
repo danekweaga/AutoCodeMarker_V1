@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import javafx.scene.layout.HBox;
 
 public class TestSuiteManager extends Stage 
 {
@@ -31,9 +32,15 @@ public class TestSuiteManager extends Stage
     public TestSuiteManager() 
     {
         Button createBtn = new Button("Create TestSuite");
+        createBtn.setPrefWidth(110);
         Button updateBtn = new Button("Update TestSuite");
+        updateBtn.setPrefWidth(110);
+        HBox buttonBox = new HBox(8,createBtn,updateBtn);
+        
         Button deleteBtn = new Button("Delete");
+        deleteBtn.setPrefWidth(240);
         Button saveBtn = new Button("Save & Close");
+        saveBtn.setPrefWidth(240);
         nameTextField.setPromptText("Enter name");
         
         // Create temporary copy of Test Suites folder
@@ -145,16 +152,15 @@ public class TestSuiteManager extends Stage
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
         root.getChildren().addAll(
-                createBtn,
-                updateBtn,
-                testSuitesListView,
+                buttonBox,
                 nameTextField,
+                testSuitesListView,
                 deleteBtn,
                 saveBtn
         );
 
         // --- Scene & Stage ---
-        Scene scene = new Scene(root, 300, 400);
+        Scene scene = new Scene(root, 250, 375);
         setTitle("Test Suites Manager");
         setScene(scene);    
     }
