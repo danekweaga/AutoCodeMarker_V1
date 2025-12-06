@@ -327,10 +327,10 @@ public class OutputViewerV2 extends Stage
             return "No tests";
         }
 
-        // Check for compile errors
+        // Check for compilation errors - CHANGED FROM "compile" TO "compilation"
         for (Result result : results) {
             if (result != null && result.getResult() != null && 
-                result.getResult().toLowerCase().contains("compile")) {
+                result.getResult().toLowerCase().contains("compilation")) { // CHANGED HERE
                 return "Code did not compile";
             }
         }
@@ -452,7 +452,7 @@ public class OutputViewerV2 extends Stage
         } else if ("FAIL".equalsIgnoreCase(resultText)) {
             resultLabel.setTextFill(Color.RED);
             resultLabel.setStyle("-fx-font-weight: bold;");
-        } else if (resultText.toLowerCase().contains("compile")) {
+        } else if (resultText.toLowerCase().contains("compilation")) { // CHANGED HERE
             resultLabel.setTextFill(Color.ORANGERED);
             resultLabel.setStyle("-fx-font-weight: bold;");
         } else if (resultText.toLowerCase().contains("runtime")) {
