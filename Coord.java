@@ -13,37 +13,47 @@ public class Coord {
     private TestSuiteManager suiteManager;
     private TestCaseManager caseManager;
 
-    public Coord(Stage owner) {
+    public Coord(Stage owner) 
+    {
         this.owner = owner;
     }
 
     // run tests
-    public void runTests() {
+    public void runTests() 
+    {
         System.out.println("Run test button clicked");
     }
 
     // manage test suites
-    public void manageTestSuites() {
-        if (suiteManager == null || !suiteManager.isShowing()) {
+    public void manageTestSuites() 
+    {
+        if (suiteManager == null || !suiteManager.isShowing()) 
+        {
             suiteManager = new TestSuiteManager();
             suiteManager.initOwner(owner);
             suiteManager.initModality(Modality.NONE);
             suiteManager.setOnCloseRequest(e -> suiteManager = null); // reset on close
             suiteManager.show();
-        } else {
+        } 
+        else 
+        {
             suiteManager.toFront();
         }
     }
 
     // manage test cases
-    public void manageTestCases() {
-        if (caseManager == null || !caseManager.isShowing()) {
+    public void manageTestCases() 
+    {
+        if (caseManager == null || !caseManager.isShowing()) 
+        {
             caseManager = new TestCaseManager();
             caseManager.initOwner(owner);
             caseManager.initModality(Modality.NONE);
             caseManager.setOnCloseRequest(e -> caseManager = null); // reset on close
             caseManager.show();
-        } else {
+        } 
+        else 
+        {
             caseManager.toFront();
         }
     }
