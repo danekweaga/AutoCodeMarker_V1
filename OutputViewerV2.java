@@ -200,17 +200,17 @@ public class OutputViewerV2 extends Stage
         if (outputs == null || outputs.isEmpty() || currentOutputIndex >= outputs.size()) {
             return;
         }
-
+    
         OutputV2 currentOutput = outputs.get(currentOutputIndex);
-        String fileName = currentOutput.getSubmissionName().replaceAll("[^a-zA-Z0-9.-]", "_") + ".result";
-
+        String fileName = currentOutput.getSubmissionName().replaceAll("[^a-zA-Z0-9.-]", "_") + "_result.txt";
+    
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Test Results");
         fileChooser.setInitialFileName(fileName);
         fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Result Files", "*.result")
+            new FileChooser.ExtensionFilter("Text Files", "*.txt")
         );
-
+    
         File file = fileChooser.showSaveDialog(this);
         if (file != null) {
             try (FileOutputStream fileOut = new FileOutputStream(file);
