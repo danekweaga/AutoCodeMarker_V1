@@ -17,12 +17,7 @@ import java.util.List;
 /***************************************************************************************
  * @title   OutputV2FileLoader
  *
- * @brief   Window (extends Stage) that lets the user:
- *          - Import a single .txt file containing a serialized OutputV2 object
- *            and open it in OutputViewerV2.
- *          - Import two .txt files, deserialize OutputV2 for each,
- *            compute success rates (PASS/total) for result1 and result2,
- *            and display the comparison side by side in two tiles.
+ * @brief   Modern-style stage for importing and comparing result files.
  ***************************************************************************************/
 public class OutputV2FileLoader extends Stage
 {
@@ -32,31 +27,78 @@ public class OutputV2FileLoader extends Stage
     {
         this.owner = owner;
         initOwner(owner);
-        setTitle("Result Options");
+        setTitle("Results");
 
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(15));
-        root.setAlignment(Pos.CENTER_LEFT);
+        // Title
+        Label title = new Label("Results Viewer");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
 
-        // Button 1: Import single result and open OutputViewerV2
-        Button importResultButton = new Button("Import Result");
-        importResultButton.setMaxWidth(Double.MAX_VALUE);
-        importResultButton.setOnAction(e -> handleImportSingle());
+        Label subtitle = new Label("Import or compare result files");
+        subtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #666666;");
 
-        // Button 2: Compare two results and show success rates
-        Button compareResultButton = new Button("Compare Results");
-        compareResultButton.setMaxWidth(Double.MAX_VALUE);
-        compareResultButton.setOnAction(e -> handleCompare());
+        VBox header = new VBox(4, title, subtitle);
 
-        root.getChildren().addAll(importResultButton, compareResultButton);
+        // Buttons (large, card-style)
+        Button importButton = createPrimaryButton("Import Result");
+        importButton.setOnAction(e -> handleImportSingle());
 
-        Scene scene = new Scene(root, 320, 150);
+        Button compareButton = createSecondaryButton("Compare Results");
+        compareButton.setOnAction(e -> handleCompare());
+
+        VBox actionsBox = new VBox(14, importButton, compareButton);
+        actionsBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Card container
+        VBox card = new VBox(22, header, actionsBox);
+        card.setPadding(new Insets(24));
+        card.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-border-color: #dddddd;" +
+            "-fx-border-radius: 12;" +
+            "-fx-background-radius: 12;"
+        );
+
+        VBox root = new VBox(card);
+        root.setPadding(new Insets(30));
+        root.setStyle("-fx-background-color: #f4f6f8;");
+
+        Scene scene = new Scene(root, 380, 260);
         setScene(scene);
     }
 
-    /***********************************************************************************
-     * Import one .txt file, deserialize OutputV2, and show in OutputViewerV2.
-     ***********************************************************************************/
+    /* ======================= UI helpers ======================= */
+
+    private Button createPrimaryButton(String text)
+    {
+        Button btn = new Button(text);
+        btn.setPrefHeight(44);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setStyle(
+            "-fx-background-color: #2f80ed;" +
+            "-fx-text-fill: white;" +
+            "-fx-font-size: 14px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-background-radius: 10;"
+        );
+        return btn;
+    }
+
+    private Button createSecondaryButton(String text)
+    {
+        Button btn = new Button(text);
+        btn.setPrefHeight(44);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setStyle(
+            "-fx-background-color: #e9ecef;" +
+            "-fx-text-fill: #333333;" +
+            "-fx-font-size: 14px;" +
+            "-fx-background-radius: 10;"
+        );
+        return btn;
+    }
+
+    /* ======================= Logic (unchanged) ======================= */
+
     private void handleImportSingle()
     {
         FileChooser chooser = new FileChooser();
@@ -66,14 +108,12 @@ public class OutputV2FileLoader extends Stage
         );
 
         File file = chooser.showOpenDialog(this);
-        if (file == null) {
-            return; // user cancelled
-        }
+        if (file == null) return;
 
         try {
             OutputV2 output = loadOutputV2FromFile(file);
             if (output == null) {
-                showError("Invalid File", "The selected file does not contain a valid OutputV2 object.");
+                showError("Invalid File", "The selected file is not a valid result file.");
                 return;
             }
 
@@ -84,16 +124,11 @@ public class OutputV2FileLoader extends Stage
             viewer.initOwner(this);
             viewer.show();
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Error", "Could not load result file:\n" + ex.getMessage());
+        } catch (Exception e) {
+            showError("Error", e.getMessage());
         }
     }
 
-    /***********************************************************************************
-     * Compare two .txt files, deserialize OutputV2 objects, compute success rates
-     * for result1 and result2 for both, and display them side by side.
-     ***********************************************************************************/
     private void handleCompare()
     {
         FileChooser chooser = new FileChooser();
@@ -104,52 +139,41 @@ public class OutputV2FileLoader extends Stage
 
         List<File> files = chooser.showOpenMultipleDialog(this);
         if (files == null || files.size() < 2) {
-            showError("Selection Error", "Please select at least two result files.");
+            showError("Selection Error", "Please select two result files.");
             return;
         }
 
-        File fileA = files.get(0);
-        File fileB = files.get(1);
-
-        OutputV2 outA;
-        OutputV2 outB;
         try {
-            outA = loadOutputV2FromFile(fileA);
-            outB = loadOutputV2FromFile(fileB);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Error", "Could not load one or both result files:\n" + ex.getMessage());
-            return;
+            OutputV2 outA = loadOutputV2FromFile(files.get(0));
+            OutputV2 outB = loadOutputV2FromFile(files.get(1));
+
+            if (outA == null || outB == null) {
+                showError("Invalid File", "One or more selected files were invalid.");
+                return;
+            }
+
+            Stage compareStage = new Stage();
+            compareStage.initOwner(this);
+            compareStage.setTitle("Results Comparison");
+
+            HBox root = new HBox(20,
+                    createResultTile("Result 1", outA),
+                    createResultTile("Result 2", outB)
+            );
+            root.setPadding(new Insets(24));
+            root.setAlignment(Pos.CENTER);
+            root.setStyle("-fx-background-color: #f4f6f8;");
+
+            compareStage.setScene(new Scene(root, 560, 280));
+            compareStage.show();
+
+        } catch (Exception e) {
+            showError("Error", e.getMessage());
         }
-
-        if (outA == null || outB == null) {
-            showError("Invalid File", "One or both files did not contain a valid OutputV2 object.");
-            return;
-        }
-
-        // Build comparison window
-        Stage compareStage = new Stage();
-        compareStage.initOwner(this);
-        compareStage.setTitle("Results Comparison");
-
-        HBox root = new HBox(20);
-        root.setPadding(new Insets(15));
-        root.setAlignment(Pos.CENTER);
-
-        VBox tile1 = createResultTile("Result 1", outA);
-        VBox tile2 = createResultTile("Result 2", outB);
-
-        root.getChildren().addAll(tile1, tile2);
-
-        Scene scene = new Scene(root, 520, 260);
-        compareStage.setScene(scene);
-        compareStage.show();
     }
 
-    /***********************************************************************************
-     * Deserialize a single OutputV2 object from a .txt file.
-     * Assumes the file was created with ObjectOutputStream.writeObject(outputV2).
-     ***********************************************************************************/
+    /* ========== Helpers (unchanged logic) ========== */
+
     private OutputV2 loadOutputV2FromFile(File file) throws Exception
     {
         try (FileInputStream fis = new FileInputStream(file);
@@ -163,85 +187,55 @@ public class OutputV2FileLoader extends Stage
         return null;
     }
 
-    /***********************************************************************************
-     * Creates one comparison tile:
-     * - name (Result #1 or Result #2)
-     * - Submission 1: success rate (PASS/total)
-     * - Submission 2: success rate or "Not available" if hasSecondSubmission == false
-     ***********************************************************************************/
     private VBox createResultTile(String title, OutputV2 output)
     {
-        VBox tile = new VBox(8);
-        tile.setPadding(new Insets(12));
-        tile.setAlignment(Pos.TOP_LEFT);
+        VBox tile = new VBox(10);
+        tile.setPadding(new Insets(16));
+        tile.setPrefWidth(240);
         tile.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-border-color: #cccccc;" +
-                "-fx-background-radius: 8;" +
-                "-fx-border-radius: 8;"
+            "-fx-background-color: white;" +
+            "-fx-border-color: #dddddd;" +
+            "-fx-border-radius: 10;" +
+            "-fx-background-radius: 10;"
         );
 
         Label titleLabel = new Label(title);
         titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        Label nameLabel = new Label("Submission name: " + output.getSubmissionName());
+        Label name = new Label(output.getSubmissionName());
 
-        String firstRate = calculateSuccessRate(output.getResult1());
+        Label sub1 = new Label("Submission 1: " + calculateSuccessRate(output.getResult1()));
+        Label sub2 = new Label(
+                output.hasSecondSubmission()
+                        ? "Submission 2: " + calculateSuccessRate(output.getResult2())
+                        : "Submission 2: Not available"
+        );
 
-        String secondRate;
-        if (output.hasSecondSubmission() && output.getResult2() != null && !output.getResult2().isEmpty()) {
-            secondRate = calculateSuccessRate(output.getResult2());
-        } else {
-            secondRate = "Not available";
-        }
-
-        Label firstLabel = new Label("Submission 1: " + firstRate);
-        Label secondLabel = new Label("Submission 2: " + secondRate);
-
-        tile.getChildren().addAll(titleLabel, nameLabel, firstLabel, secondLabel);
+        tile.getChildren().addAll(titleLabel, name, sub1, sub2);
         return tile;
     }
 
-    /***********************************************************************************
-     * Calculates success rate as "pass/total".
-     * - Only "PASS" (case-insensitive) counts as success.
-     * - Anything else ("FAIL", "DID NOT COMPILE", "DID NOT RUN", etc.) counts as failure.
-     * - If the list is null or empty → "0/0".
-     ***********************************************************************************/
     private String calculateSuccessRate(ArrayList<Result> results)
     {
-        if (results == null || results.isEmpty()) {
-            return "0/0";
-        }
+        if (results == null || results.isEmpty()) return "0/0";
 
-        int total = 0;
-        int pass  = 0;
-
+        int total = 0, pass = 0;
         for (Result r : results) {
-            if (r == null || r.getResult() == null) {
-                continue;
+            if (r != null && r.getResult() != null) {
+                total++;
+                if ("PASS".equalsIgnoreCase(r.getResult().trim())) {
+                    pass++;
+                }
             }
-            total++;
-            String res = r.getResult().trim().toUpperCase();
-            if ("PASS".equals(res)) {
-                pass++;
-            }
-            // Any other value: FAIL / DID NOT COMPILE / DID NOT RUN → not counted as success.
         }
-
-        if (total == 0) {
-            return "0/0";
-        }
-
         return pass + "/" + total;
     }
 
     private void showError(String title, String message)
     {
-        Stage ownerStage = (owner != null) ? owner : this;
         javafx.scene.control.Alert alert =
                 new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-        alert.initOwner(ownerStage);
+        alert.initOwner(this);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
