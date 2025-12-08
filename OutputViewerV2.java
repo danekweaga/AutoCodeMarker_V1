@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.io.PrintWriter;
 
 /***************************************************************************************
  * @title   The OutputViewerV2 class.
@@ -208,7 +209,7 @@ public class OutputViewerV2 extends Stage
         fileChooser.setTitle("Save Test Results");
         fileChooser.setInitialFileName(fileName);
         fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Text Files", "*.txt")
+            new FileChooser.ExtensionFilter("Serialized Files", "*.txt")
         );
     
         File file = fileChooser.showSaveDialog(this);
@@ -216,9 +217,14 @@ public class OutputViewerV2 extends Stage
             try (FileOutputStream fileOut = new FileOutputStream(file);
                  ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
                 out.writeObject(currentOutput);
-                System.out.println("Results saved to: " + file.getAbsolutePath());
             } catch (Exception e) {
                 System.err.println("Error saving results: " + e.getMessage());
+                e.printStackTrace();
+                
+                // Check if OutputV2 implements Serializable
+                if (!(currentOutput instanceof java.io.Serializable)) {
+                    System.err.println("ERROR: OutputV2 class must implement java.io.Serializable interface!");
+                }
             }
         }
     }

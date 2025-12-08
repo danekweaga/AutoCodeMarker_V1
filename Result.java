@@ -1,3 +1,4 @@
+import java.io.Serializable;
  
 
 /***************************************************************************************
@@ -7,9 +8,9 @@
  *          Aniekan Ekarika, Frances Felicidario
  * @version V1.0
  ***************************************************************************************/
-public class Result
+public class Result implements Serializable 
 {
-    // Instance data
+    private static final long serialVersionUID = 1L;
     private String testCaseName;
     private String result;
 

@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.io.Serializable;
+
 
 /***************************************************************************************
  * @title   The OutputV2 class.
@@ -7,9 +9,10 @@ import java.util.ArrayList;
  *          Aniekan Ekarika, Frances Felicidario
  * @version V2.0
  ***************************************************************************************/
-public class OutputV2
+public class OutputV2 implements Serializable
 {
     // Instance data
+    private static final long serialVersionUID = 1L;
     private ArrayList<Result> result1;
     private ArrayList<Result> result2;
     private boolean hasSecondSubmission;
