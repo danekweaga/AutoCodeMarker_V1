@@ -216,20 +216,50 @@ public class OutputV2FileLoader extends Stage
         return tile;
     }
 
+    /***********************************************************************************
+     * Calculates success rate for a list of results.
+     ***********************************************************************************/
     private String calculateSuccessRate(ArrayList<Result> results)
     {
-        if (results == null || results.isEmpty()) return "0/0";
+        if (results == null || results.isEmpty()) {
+            return "No tests";
+        }
 
-        int total = 0, pass = 0;
-        for (Result r : results) {
-            if (r != null && r.getResult() != null) {
-                total++;
-                if ("PASS".equalsIgnoreCase(r.getResult().trim())) {
-                    pass++;
+        // Check for compilation errors - CHANGED FROM "compile" TO "compilation"
+        for (Result result : results) {
+            if (result != null && result.getResult() != null && 
+                result.getResult().toLowerCase().contains("compilation")) { // CHANGED HERE
+                return "Code did not compile";
+            }
+        }
+
+        // Check for runtime errors
+        for (Result result : results) {
+            if (result != null && result.getResult() != null && 
+                result.getResult().toLowerCase().contains("runtime")) {
+                return "Runtime error";
+            }
+        }
+
+        // Calculate success rate
+        int totalPass = 0;
+        int totalTests = 0;
+        
+        for (Result result : results) {
+            if (result != null && result.getResult() != null) {
+                totalTests++;
+                if ("PASS".equalsIgnoreCase(result.getResult())) {
+                    totalPass++;
                 }
             }
         }
-        return pass + "/" + total;
+
+        if (totalTests == 0) {
+            return "0.000 (0/0)";
+        }
+
+        double successRate = (double) totalPass / totalTests;
+        return String.format("%.3f (%d/%d)", successRate, totalPass, totalTests);
     }
 
     private void showError(String title, String message)
