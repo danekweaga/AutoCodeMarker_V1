@@ -1,9 +1,4 @@
-/****************************************************************************
- * Class to help user manage test Suites in folders from the app instead
- *
- * @author Aalmin Adeleke, Chuckwunonso Ekweaga, Aniekan Ekarika, Frances Felicidario
- * @version 11/23/2025
- ***************************************************************************/
+
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -17,7 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import javafx.scene.layout.HBox;
-
+/****************************************************************************
+ * Class to help user manage test Suites in folders from the app instead
+ *
+ * @author Aalmin Adeleke, Chuckwunonso Ekweaga, Aniekan Ekarika, Frances Felicidario
+ * @version 11/23/2025
+ ***************************************************************************/
 public class TestSuiteManager extends Stage 
 {
     private final ListView<String> testSuitesListView = new ListView<>();
