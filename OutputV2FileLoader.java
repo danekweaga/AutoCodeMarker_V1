@@ -25,6 +25,7 @@ public class OutputV2FileLoader extends Stage
 
     public OutputV2FileLoader(Stage owner)
     {
+        setResizable(false);
         this.owner = owner;
         initOwner(owner);
         setTitle("Results");
