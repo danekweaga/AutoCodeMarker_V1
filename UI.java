@@ -30,11 +30,12 @@ import java.nio.file.StandardCopyOption;
  * The GUI in which the User interacts with to set Folder paths, Set Test Suites and Test Cases, etc
  *
  * @author Alamin Adeleke, Chuckwunonso Ekweaga, Aniekan Ekarika, Frances Felicidario
- * @version 1
+ * @version 2
  ***************************************************************************************/
 public class UI extends Application
 {
     private String submissionsFolder;
+    private String secondSubmissionsFolder;
     private Path baseFolder;
     private Path testSuiteFolder;
     private Coord c;
@@ -43,6 +44,7 @@ public class UI extends Application
     private final StringProperty selectedTestSuite = new SimpleStringProperty();
 
     private TextField submissionsPathField;
+    private TextField secondSubmissionsPathField;
     private TextField testCasePathField;
     ComboBox<String> testSuiteDropdown;
     
@@ -70,11 +72,12 @@ public class UI extends Application
         titleLabel.setMaxWidth(Double.MAX_VALUE);
         titleLabel.setAlignment(Pos.CENTER);
 
-        // ---- Select Submission Folder ----
-        Label submissionsLabel = new Label("Select Submission Folder:");
+        // ---- Select Submission Folder (Required) ----
+        Label submissionsLabel = new Label("Select Submission Folder (Required):");
         submissionsPathField = new TextField();
         submissionsPathField.setEditable(false);
         submissionsPathField.setPrefWidth(185);
+        submissionsPathField.setStyle("-fx-border-color: #ff4444; -fx-border-width: 1px;");
 
         Button chooseSubmissionsButton = new Button("Browse");
         chooseSubmissionsButton.setOnAction(e -> 
@@ -92,14 +95,36 @@ public class UI extends Application
         HBox submissionsBox = new HBox(11, submissionsLabel, submissionsPathField, chooseSubmissionsButton);
         submissionsBox.setAlignment(Pos.CENTER_LEFT);
 
-        // --- Test Suite Dropdown Section ---
+        // ---- Select Second Submission Folder (Optional) ----
+        Label secondSubmissionsLabel = new Label("Select Second Folder (Optional):");
+        secondSubmissionsPathField = new TextField();
+        secondSubmissionsPathField.setEditable(false);
+        secondSubmissionsPathField.setPrefWidth(185);
 
-        Label testSuiteLabel = new Label("Choose Test Suite:            ");
+        Button chooseSecondSubmissionsButton = new Button("Browse");
+        chooseSecondSubmissionsButton.setOnAction(e -> 
+        {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select Second Submission Folder");
+            File folder = directoryChooser.showDialog(primaryStage);
+            if (folder != null) 
+            {
+                secondSubmissionsFolder = folder.getAbsolutePath();
+                secondSubmissionsPathField.setText(secondSubmissionsFolder);
+            }
+        });
+
+        HBox secondSubmissionsBox = new HBox(11, secondSubmissionsLabel, secondSubmissionsPathField, chooseSecondSubmissionsButton);
+        secondSubmissionsBox.setAlignment(Pos.CENTER_LEFT);
+
+        // --- Test Suite Dropdown Section ---
+        Label testSuiteLabel = new Label("Choose Test Suite (Required):");
         
         // ComboBox for listing test suite folders
         testSuiteDropdown = new ComboBox<>();
         testSuiteDropdown.setPromptText("Select a test suite");
         testSuiteDropdown.setPrefWidth(250);
+        testSuiteDropdown.setStyle("-fx-border-color: #ff4444; -fx-border-width: 1px;");
         
         HBox testSuitBox = new HBox(9, testSuiteLabel, testSuiteDropdown);
         testSuitBox.setAlignment(Pos.CENTER_LEFT);
@@ -120,8 +145,6 @@ public class UI extends Application
             }
         }
         
-        
-        
         testSuiteDropdown.setOnAction(e -> 
         {
             selectedTestSuite.set(testSuiteDropdown.getValue());
@@ -132,48 +155,58 @@ public class UI extends Application
         // ---- Manage TestCases & Manage TestSuite (stylized rectangles) ----
         StackPane manageTestCasesButton = createRectButton("Manage TestCases", Color.LIGHTBLUE, this::manageTestCases);
         StackPane manageTestSuiteButton = createRectButton("Manage TestSuite", Color.LIGHTBLUE, this::manageTestSuite);
+        StackPane manageResultsButton = createRectButton("Manage Results", Color.LIGHTGOLDENRODYELLOW, this::managerResults);
 
-        HBox manageBox = new HBox(20, manageTestCasesButton, manageTestSuiteButton);
+        HBox manageBox = new HBox(10, manageTestCasesButton, manageTestSuiteButton, manageResultsButton);
         manageBox.setAlignment(Pos.CENTER);
 
-        //Run Test Cases button (stylized rectangle)
+        // Run Test Cases button (stylized rectangle)
         StackPane runTestCasesButton = createRectButton("Run Test Cases", Color.LIGHTGREEN, this::runTestCases);
+        runTestCasesButton.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 1);");
 
-        //Layout (mostly top-to-bottom)
-        VBox root = new VBox(22);
+        // Layout (mostly top-to-bottom)
+        VBox root = new VBox(15);
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.TOP_LEFT);
         root.getChildren().addAll(
                 titleLabel,
                 submissionsBox,
+                secondSubmissionsBox,
                 testSuitBox,
                 manageBox,
                 runTestCasesButton
-                
         );
 
-        Scene scene = new Scene(root, 450, 300);
+        Scene scene = new Scene(root, 550, 350);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
     }
 
-    //Method to format ui buttons
+    // Method to format ui buttons
     private StackPane createRectButton(String label, Color fillColor, Runnable action) {
-        Rectangle rect = new Rectangle(160, 40);
+        Rectangle rect = new Rectangle(140, 40);
         rect.setFill(fillColor);
-        rect.setArcWidth(20);
-        rect.setArcHeight(20);
+        rect.setArcWidth(15);
+        rect.setArcHeight(15);
+        rect.setStroke(Color.GRAY);
+        rect.setStrokeWidth(1);
 
         Text text = new Text(label);
-        text.setFont(Font.font("Arial", 13));
+        text.setFont(Font.font("Arial", 12));
         text.setFill(Color.BLACK);
 
         StackPane pane = new StackPane(rect, text);
 
         // Hover effect
-        pane.setOnMouseEntered(e -> rect.setOpacity(0.7));
-        pane.setOnMouseExited(e -> rect.setOpacity(1.0));
+        pane.setOnMouseEntered(e -> {
+            rect.setOpacity(0.7);
+            rect.setStroke(Color.BLACK);
+        });
+        pane.setOnMouseExited(e -> {
+            rect.setOpacity(1.0);
+            rect.setStroke(Color.GRAY);
+        });
 
         // Click actions on both rect & text
         pane.setOnMouseClicked(e -> 
@@ -201,16 +234,16 @@ public class UI extends Application
         return pane;
     }
     
-    //Method to create app folder
+    // Method to create app folder
     private void initializeFolders() 
     {
-        //get the users folder name
+        // get the users folder name
         String userHome = System.getProperty("user.home");
-        //Create the App folder
+        // Create the App folder
         baseFolder = Paths.get(userHome, "Auto Code Marker");
         testSuiteFolder = baseFolder.resolve("Test Suites");
 
-        //Make test suite subfolder
+        // Make test suite subfolder
         try 
         {
             Files.createDirectories(testSuiteFolder);
@@ -234,19 +267,26 @@ public class UI extends Application
         }
     }
 
-    
     // Button Methods to interact with the coordinator Class
     private void manageTestSuite() 
     {
         c.manageTestSuites();
         chosenSuite = selectedTestSuite.get();
     }
+    
     private void manageTestCases() 
     {
         c.manageTestCases();
     }
+    
     private void runTestCases() 
     {
-        c.runTests(submissionsPathField.getText(),testSuiteDropdown.getValue());
+        //c.runTests(submissionsPathField.getText(), secondSubmissionsPathField.getText(), testSuiteDropdown.getValue());
+        c.runTests(submissionsPathField.getText(), testSuiteDropdown.getValue());
+    }
+    
+    private void managerResults()
+    {
+        c.manageResults();
     }
 }

@@ -19,15 +19,12 @@ import java.util.List;
  *
  * @brief   Modern-style stage for importing and comparing result files.
  ***************************************************************************************/
-public class OutputV2FileLoader extends Stage
+public class ResultManager extends Stage
 {
-    private final Stage owner;
 
-    public OutputV2FileLoader(Stage owner)
+    public ResultManager()
     {
         setResizable(false);
-        this.owner = owner;
-        initOwner(owner);
         setTitle("Results");
 
         // Title

@@ -24,6 +24,7 @@ public class Coord
     private TestSuiteManager suiteManager;
     private TestCaseManager caseManager;
     private OutputViewer outputView;
+    private ResultManager resultManager;
     private Stage loadingStage;
 
     public Coord(Stage owner) {
@@ -33,6 +34,7 @@ public class Coord
     /**
      * Runs tests on submissions given a submission folder and test suite folder.
      */
+    // public void runTests(String firstSubmissionFolder, String secondSubmissionFolder, String testSuiteFolderName) {
     public void runTests(String submissionFolder, String testSuiteFolderName) {
         showLoadingDialog();
 
@@ -262,6 +264,18 @@ public class Coord
             caseManager.show();
         } else {
             caseManager.toFront();
+        }
+    }
+    
+    public void manageResults() {
+        if (resultManager == null || !resultManager.isShowing()) {
+            resultManager = new ResultManager();
+            resultManager.initOwner(owner);
+            resultManager.initModality(Modality.NONE);
+            resultManager.setOnCloseRequest(e -> resultManager = null);
+            resultManager.show();
+        } else {
+            resultManager.toFront();
         }
     }
 }
