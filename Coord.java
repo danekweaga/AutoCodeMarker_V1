@@ -10,6 +10,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.VBox;
 import javafx.scene.Scene;
+import java.util.HashMap;
+import java.util.Map;
 
 /***************************************************************************************
  * @title   The Coord class.
@@ -23,7 +25,7 @@ public class Coord
 
     private TestSuiteManager suiteManager;
     private TestCaseManager caseManager;
-    private OutputViewer outputView;
+    private OutputViewerV2 outputView;
     private ResultManager resultManager;
     private Stage loadingStage;
 
@@ -31,26 +33,22 @@ public class Coord
         this.owner = owner;
     }
 
-    /**
-     * Runs tests on submissions given a submission folder and test suite folder.
-     */
-    // public void runTests(String firstSubmissionFolder, String secondSubmissionFolder, String testSuiteFolderName) {
-    public void runTests(String submissionFolder, String testSuiteFolderName) {
+    public void runTests(String firstSubmissionFolder, String secondSubmissionFolder, String testSuiteFolderName) {
         showLoadingDialog();
-
+    
         new Thread(() -> {
-            ArrayList<Output> outputs = new ArrayList<>();
+            ArrayList<OutputV2> outputs = new ArrayList<>();
             TestSuite testSuite = new TestSuite();
-
+    
             try {
                 String userHome = System.getProperty("user.home");
                 Path baseFolder = Paths.get(userHome, "Auto Code Marker");
                 Path testSuiteFolder = baseFolder.resolve("Test Suites").resolve(testSuiteFolderName);
-
+    
                 if (!Files.exists(testSuiteFolder) || !Files.isDirectory(testSuiteFolder)) {
                     throw new IOException("Test Suite folder not found: " + testSuiteFolder);
                 }
-
+    
                 // Load test cases from .txt files
                 int index = 0;
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(testSuiteFolder, "*.txt")) {
@@ -61,56 +59,131 @@ public class Coord
                         testSuite.add(new TestCase(file.getFileName().toString(), input, output, index++));
                     }
                 }
-
-                // Get submissions
-                File submissionsDir = new File(submissionFolder);
-                if (!submissionsDir.exists() || !submissionsDir.isDirectory()) {
-                    throw new IOException("Submission folder not found: " + submissionFolder);
+    
+                // Get first submissions
+                File firstSubmissionsDir = new File(firstSubmissionFolder);
+                if (!firstSubmissionsDir.exists() || !firstSubmissionsDir.isDirectory()) {
+                    throw new IOException("First submission folder not found: " + firstSubmissionFolder);
                 }
-
-                File[] submissionFolders = submissionsDir.listFiles(File::isDirectory);
-                if (submissionFolders == null) submissionFolders = new File[0];
-
-                for (File folder : submissionFolders) {
-                    File[] javaFiles = folder.listFiles(f -> f.isFile() && f.getName().endsWith(".java"));
-                    if (javaFiles == null || javaFiles.length == 0) continue;
-
-                    String fileName = javaFiles[0].getName();
-                    Submission submission = new Submission(folder.getName(), folder.getAbsolutePath(), fileName);
-                    Output output = new Output(submission.name);
-
-                    // Compile
-                    String compileError = compileCode(submission);
+    
+                File[] firstSubmissionFolders = firstSubmissionsDir.listFiles(File::isDirectory);
+                if (firstSubmissionFolders == null) firstSubmissionFolders = new File[0];
+    
+                // Get second submissions if provided
+                File secondSubmissionsDir = null;
+                File[] secondSubmissionFolders = new File[0];
+                boolean hasSecondFolder = secondSubmissionFolder != null && !secondSubmissionFolder.isEmpty();
+                
+                if (hasSecondFolder) {
+                    secondSubmissionsDir = new File(secondSubmissionFolder);
+                    if (!secondSubmissionsDir.exists() || !secondSubmissionsDir.isDirectory()) {
+                        throw new IOException("Second submission folder not found: " + secondSubmissionFolder);
+                    }
+                    secondSubmissionFolders = secondSubmissionsDir.listFiles(File::isDirectory);
+                    if (secondSubmissionFolders == null) secondSubmissionFolders = new File[0];
+                }
+    
+                // Create a map for quick lookup of second submissions by folder name
+                Map<String, File> secondSubmissionMap = new HashMap<>();
+                for (File folder : secondSubmissionFolders) {
+                    secondSubmissionMap.put(folder.getName(), folder);
+                }
+    
+                // Process first submissions
+                for (File firstFolder : firstSubmissionFolders) {
+                    File[] firstJavaFiles = firstFolder.listFiles(f -> f.isFile() && f.getName().endsWith(".java"));
+                    if (firstJavaFiles == null || firstJavaFiles.length == 0) continue;
+    
+                    String firstFileName = firstJavaFiles[0].getName();
+                    String folderName = firstFolder.getName();
+                    
+                    // Create OutputV2 for this submission
+                    OutputV2 outputV2 = new OutputV2(folderName);
+                    
+                    // Process first submission
+                    Submission firstSubmission = new Submission(folderName, firstFolder.getAbsolutePath(), firstFileName);
+                    String compileError = compileCode(firstSubmission);
+                    
                     if (compileError != null) {
+                        // Compilation failed for first submission
                         for (TestCase tc : testSuite.testSuite) {
-                            output.addResult(new Result(tc.getName(), "FAIL - Compilation Error: " + compileError));
+                            outputV2.addResult1(new Result(tc.getName(), "FAIL - Compilation Error: " + compileError));
                         }
-                        outputs.add(output);
-                        continue;
-                    }
-
-                    // Run test cases
-                    for (TestCase tc : testSuite.testSuite) {
-                        String resultText;
-                        try {
-                            // Split inputs by spaces to pass as command-line arguments
-                            String[] args = tc.getInput().split("\\s+");
-                            String programOutput = runCode(submission, args);
-
-                            String expected = tc.getOutput() != null ? tc.getOutput().trim() : "";
-                            String actual = programOutput != null ? programOutput.trim() : "";
-
-                            resultText = expected.equals(actual) ? "PASS" :
-                                    "FAIL - Expected: '" + expected + "', Got: '" + actual + "'";
-                        } catch (Exception e) {
-                            resultText = "FAIL - Runtime Error: " + e.getMessage();
+                    } else {
+                        // Run test cases for first submission
+                        for (TestCase tc : testSuite.testSuite) {
+                            String resultText = runTestOnSubmission(firstSubmission, tc);
+                            outputV2.addResult1(new Result(tc.getName(), resultText));
                         }
-                        output.addResult(new Result(tc.getName(), resultText));
                     }
-
-                    outputs.add(output);
+    
+                    // Check if there's a matching second submission
+                    File secondFolder = secondSubmissionMap.get(folderName);
+                    if (secondFolder != null) {
+                        File[] secondJavaFiles = secondFolder.listFiles(f -> f.isFile() && f.getName().endsWith(".java"));
+                        if (secondJavaFiles != null && secondJavaFiles.length > 0) {
+                            String secondFileName = secondJavaFiles[0].getName();
+                            Submission secondSubmission = new Submission(folderName, secondFolder.getAbsolutePath(), secondFileName);
+                            
+                            String secondCompileError = compileCode(secondSubmission);
+                            
+                            if (secondCompileError != null) {
+                                // Compilation failed for second submission
+                                for (TestCase tc : testSuite.testSuite) {
+                                    outputV2.addResult2(new Result(tc.getName(), "FAIL - Compilation Error: " + secondCompileError));
+                                }
+                            } else {
+                                // Run test cases for second submission
+                                for (TestCase tc : testSuite.testSuite) {
+                                    String resultText = runTestOnSubmission(secondSubmission, tc);
+                                    outputV2.addResult2(new Result(tc.getName(), resultText));
+                                }
+                            }
+                            outputV2.setHasSecondSubmission(true);
+                            
+                            // Remove from map to mark as processed
+                            secondSubmissionMap.remove(folderName);
+                        }
+                    }
+    
+                    outputs.add(outputV2);
                 }
-
+    
+                // Handle second submissions that don't have a matching first submission
+                for (Map.Entry<String, File> entry : secondSubmissionMap.entrySet()) {
+                    String folderName = entry.getKey();
+                    File secondFolder = entry.getValue();
+                    
+                    // This is a second-only submission
+                    File[] secondJavaFiles = secondFolder.listFiles(f -> f.isFile() && f.getName().endsWith(".java"));
+                    if (secondJavaFiles == null || secondJavaFiles.length == 0) continue;
+                    
+                    String secondFileName = secondJavaFiles[0].getName();
+                    OutputV2 outputV2 = new OutputV2(folderName);
+                    
+                    // Add empty results for first submission
+                    for (TestCase tc : testSuite.testSuite) {
+                        outputV2.addResult1(new Result(tc.getName(), "No first submission found"));
+                    }
+                    
+                    // Process second submission
+                    Submission secondSubmission = new Submission(folderName, secondFolder.getAbsolutePath(), secondFileName);
+                    String secondCompileError = compileCode(secondSubmission);
+                    
+                    if (secondCompileError != null) {
+                        for (TestCase tc : testSuite.testSuite) {
+                            outputV2.addResult2(new Result(tc.getName(), "FAIL - Compilation Error: " + secondCompileError));
+                        }
+                    } else {
+                        for (TestCase tc : testSuite.testSuite) {
+                            String resultText = runTestOnSubmission(secondSubmission, tc);
+                            outputV2.addResult2(new Result(tc.getName(), resultText));
+                        }
+                    }
+                    outputV2.setHasSecondSubmission(true);
+                    outputs.add(outputV2);
+                }
+    
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     hideLoadingDialog();
@@ -118,14 +191,15 @@ public class Coord
                 });
                 return;
             }
-
+    
             // Show output viewer and hide modal
             Platform.runLater(() -> {
                 hideLoadingDialog(); // Ensure loading modal is gone
                 if (outputView != null && outputView.isShowing()) {
                     outputView.close();
                 }
-                outputView = new OutputViewer(outputs);
+                // Use OutputViewerV2 instead of OutputViewer
+                outputView = new OutputViewerV2(outputs);
                 outputView.initOwner(owner);
                 outputView.initModality(Modality.NONE);
                 outputView.setOnCloseRequest(e -> {
@@ -134,8 +208,27 @@ public class Coord
                 });
                 outputView.show();
             });
-
+    
         }).start();
+    }
+    
+    // Helper method to run a single test case on a submission
+    private String runTestOnSubmission(Submission submission, TestCase tc) {
+        String resultText;
+        try {
+            // Split inputs by spaces to pass as command-line arguments
+            String[] args = tc.getInput().split("\\s+");
+            String programOutput = runCode(submission, args);
+    
+            String expected = tc.getOutput() != null ? tc.getOutput().trim() : "";
+            String actual = programOutput != null ? programOutput.trim() : "";
+    
+            resultText = expected.equals(actual) ? "PASS" :
+                    "FAIL - Expected: '" + expected + "', Got: '" + actual + "'";
+        } catch (Exception e) {
+            resultText = "FAIL - Runtime Error: " + e.getMessage();
+        }
+        return resultText;
     }
 
     private void showLoadingDialog() {
