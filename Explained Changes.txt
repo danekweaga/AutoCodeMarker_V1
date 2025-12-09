@@ -1,0 +1,5 @@
+Explanation of what needed to be changed
+
+- Our Output Class that stores the results of a test suite on a single submission had to now handle a second submission from the same student
+- We made a new output viewer to properly view success rates and show results for the second submission, also added the ability to download a result
+- A result Manager class was created to allow for importing of downloaded results to be visualised and compared when 2 are selected
